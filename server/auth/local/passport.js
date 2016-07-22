@@ -1,6 +1,9 @@
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setup = setup;
 
 var _passport = require('passport');
 
@@ -8,10 +11,12 @@ var _passport2 = _interopRequireDefault(_passport);
 
 var _passportLocal = require('passport-local');
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function localAuthenticate(User, email, password, done) {
-  User.findOneAsync({
+  User.findOne({
     email: email.toLowerCase()
-  }).then(function (user) {
+  }).exec().then(function (user) {
     if (!user) {
       return done(null, false, {
         message: 'This email is not registered.'
@@ -22,24 +27,22 @@ function localAuthenticate(User, email, password, done) {
         return done(authError);
       }
       if (!authenticated) {
-        return done(null, false, {
-          message: 'This password is not correct.'
-        });
+        return done(null, false, { message: 'This password is not correct.' });
       } else {
         return done(null, user);
       }
     });
-  })['catch'](function (err) {
+  }).catch(function (err) {
     return done(err);
   });
 }
 
-exports.setup = function (User, config) {
-  _passport2['default'].use(new _passportLocal.Strategy({
+function setup(User, config) {
+  _passport2.default.use(new _passportLocal.Strategy({
     usernameField: 'email',
     passwordField: 'password' // this is the virtual field on the model
   }, function (email, password, done) {
     return localAuthenticate(User, email, password, done);
   }));
-};
+}
 //# sourceMappingURL=passport.js.map

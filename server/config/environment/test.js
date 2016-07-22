@@ -2,10 +2,11 @@
 
 // Test specific configuration
 // ===========================
+
 module.exports = {
   // MongoDB connection options
   mongo: {
-    uri: 'mongodb://localhost/expressapi-test'
+    uri: 'mongodb://localhost/pmgrestful-test'
   },
   sequelize: {
     uri: 'sqlite://',

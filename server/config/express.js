@@ -4,7 +4,77 @@
 
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (app) {
+  var env = app.get('env');
+
+  if (env === 'development' || env === 'test') {
+    app.use(_express2.default.static(_path2.default.join(_environment2.default.root, '.tmp')));
+  }
+
+  if (env === 'production') {
+    app.use((0, _serveFavicon2.default)(_path2.default.join(_environment2.default.root, 'client', 'favicon.ico')));
+  }
+
+  app.set('appPath', _path2.default.join(_environment2.default.root, 'client'));
+  app.use(_express2.default.static(app.get('appPath')));
+  app.use((0, _morgan2.default)('dev'));
+
+  app.set('views', _environment2.default.root + '/server/views');
+  app.engine('html', require('ejs').renderFile);
+  app.set('view engine', 'html');
+  app.use((0, _compression2.default)());
+  app.use(_bodyParser2.default.urlencoded({ extended: false }));
+  app.use(_bodyParser2.default.json());
+  app.use((0, _methodOverride2.default)());
+  app.use((0, _cookieParser2.default)());
+  app.use(_passport2.default.initialize());
+
+  // Persist sessions with MongoStore / sequelizeStore
+  // We need to enable sessions for passport-twitter because it's an
+  // oauth 1.0 strategy, and Lusca depends on sessions
+  app.use((0, _expressSession2.default)({
+    secret: _environment2.default.secrets.session,
+    saveUninitialized: true,
+    resave: false,
+    store: new MongoStore({
+      mongooseConnection: _mongoose2.default.connection,
+      db: 'pmg-restful'
+    })
+  }));
+
+  /**
+   * Lusca - express server security
+   * https://github.com/krakenjs/lusca
+   */
+  if (env !== 'test' && !process.env.SAUCE_USERNAME) {
+    app.use((0, _lusca2.default)({
+      csrf: {
+        angular: true
+      },
+      xframe: 'SAMEORIGIN',
+      hsts: {
+        maxAge: 31536000, //1 year, in seconds
+        includeSubDomains: true,
+        preload: true
+      },
+      xssProtection: true
+    }));
+  }
+
+  if ('development' === env) {
+    app.use(require('connect-livereload')({
+      ignore: [/^\/api\/(.*)/, /\.js(\?.*)?$/, /\.css(\?.*)?$/, /\.svg(\?.*)?$/, /\.ico(\?.*)?$/, /\.woff(\?.*)?$/, /\.png(\?.*)?$/, /\.jpg(\?.*)?$/, /\.jpeg(\?.*)?$/, /\.gif(\?.*)?$/, /\.pdf(\?.*)?$/]
+    }));
+  }
+
+  if ('development' === env || 'test' === env) {
+    app.use((0, _errorhandler2.default)()); // Error handler - has to be last
+  }
+};
 
 var _express = require('express');
 
@@ -66,71 +136,7 @@ var _mongoose = require('mongoose');
 
 var _mongoose2 = _interopRequireDefault(_mongoose);
 
-var mongoStore = (0, _connectMongo2['default'])(_expressSession2['default']);
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-module.exports = function (app) {
-  var env = app.get('env');
-
-  app.engine('html', require('ejs').renderFile);
-  app.set('view engine', 'html');
-  app.use((0, _compression2['default'])());
-  app.use(_bodyParser2['default'].urlencoded({ extended: false }));
-  app.use(_bodyParser2['default'].json());
-  app.use((0, _methodOverride2['default'])());
-  app.use((0, _cookieParser2['default'])());
-  app.use(_passport2['default'].initialize());
-
-  // Persist sessions with mongoStore / sequelizeStore
-  // We need to enable sessions for passport-twitter because it's an
-  // oauth 1.0 strategy, and Lusca depends on sessions
-  app.use((0, _expressSession2['default'])({
-    secret: _environment2['default'].secrets.session,
-    saveUninitialized: true,
-    resave: false,
-    store: new mongoStore({
-      mongooseConnection: _mongoose2['default'].connection,
-      db: 'expressapi'
-    })
-  }));
-
-  /**
-   * Lusca - express server security
-   * https://github.com/krakenjs/lusca
-   */
-  if ('test' !== env) {
-    app.use((0, _lusca2['default'])({
-      /*
-      csrf: {
-        angular: true
-      },*/
-      csrf: false,
-      xframe: 'SAMEORIGIN',
-      hsts: {
-        maxAge: 31536000, //1 year, in seconds
-        includeSubDomains: true,
-        preload: true
-      },
-      xssProtection: true
-    }));
-  }
-
-  app.set('appPath', _path2['default'].join(_environment2['default'].root, 'client'));
-
-  if ('production' === env) {
-    app.use((0, _serveFavicon2['default'])(_path2['default'].join(_environment2['default'].root, 'client', 'favicon.ico')));
-    app.use(_express2['default']['static'](app.get('appPath')));
-    app.use((0, _morgan2['default'])('dev'));
-  }
-
-  if ('development' === env) {
-    app.use(require('connect-livereload')());
-  }
-
-  if ('development' === env || 'test' === env) {
-    app.use(_express2['default']['static'](_path2['default'].join(_environment2['default'].root, '.tmp')));
-    app.use(_express2['default']['static'](app.get('appPath')));
-    app.use((0, _morgan2['default'])('dev'));
-    app.use((0, _errorhandler2['default'])()); // Error handler - has to be last
-  }
-};
+var MongoStore = (0, _connectMongo2.default)(_expressSession2.default);
 //# sourceMappingURL=express.js.map

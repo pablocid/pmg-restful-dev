@@ -1,27 +1,25 @@
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
-
 var _express = require('express');
 
-var _express2 = _interopRequireDefault(_express);
+var _user = require('./user.controller');
 
-var _userController = require('./user.controller');
+var controller = _interopRequireWildcard(_user);
 
-var _userController2 = _interopRequireDefault(_userController);
+var _auth = require('../../auth/auth.service');
 
-var _authAuthService = require('../../auth/auth.service');
+var auth = _interopRequireWildcard(_auth);
 
-var _authAuthService2 = _interopRequireDefault(_authAuthService);
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var router = _express2['default'].Router();
+var router = new _express.Router();
 
-router.get('/', _authAuthService2['default'].hasRole('admin'), _userController2['default'].index);
-router['delete']('/:id', _authAuthService2['default'].hasRole('admin'), _userController2['default'].destroy);
-router.get('/me', _authAuthService2['default'].isAuthenticated(), _userController2['default'].me);
-router.put('/:id/password', _authAuthService2['default'].isAuthenticated(), _userController2['default'].changePassword);
-router.get('/:id', _authAuthService2['default'].isAuthenticated(), _userController2['default'].show);
-router.post('/', _userController2['default'].create);
+router.get('/', auth.hasRole('admin'), controller.index);
+router.delete('/:id', auth.hasRole('admin'), controller.destroy);
+router.get('/me', auth.isAuthenticated(), controller.me);
+router.put('/:id/password', auth.isAuthenticated(), controller.changePassword);
+router.get('/:id', auth.isAuthenticated(), controller.show);
+router.post('/', controller.create);
 
 module.exports = router;
 //# sourceMappingURL=index.js.map

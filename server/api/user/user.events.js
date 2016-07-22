@@ -4,13 +4,17 @@
 
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
 var _events = require('events');
 
-var _userModel = require('./user.model');
+var _user = require('./user.model');
 
-var _userModel2 = _interopRequireDefault(_userModel);
+var _user2 = _interopRequireDefault(_user);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var UserEvents = new _events.EventEmitter();
 
@@ -26,7 +30,7 @@ var events = {
 // Register the event emitter to the model events
 for (var e in events) {
   var event = events[e];
-  _userModel2['default'].schema.post(e, emitEvent(event));
+  _user2.default.schema.post(e, emitEvent(event));
 }
 
 function emitEvent(event) {
@@ -36,5 +40,5 @@ function emitEvent(event) {
   };
 }
 
-module.exports = UserEvents;
+exports.default = UserEvents;
 //# sourceMappingURL=user.events.js.map

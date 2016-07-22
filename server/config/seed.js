@@ -5,20 +5,20 @@
 
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+var _thing = require('../api/thing/thing.model');
 
-var _apiThingThingModel = require('../api/thing/thing.model');
+var _thing2 = _interopRequireDefault(_thing);
 
-var _apiThingThingModel2 = _interopRequireDefault(_apiThingThingModel);
+var _user = require('../api/user/user.model');
 
-var _apiUserUserModel = require('../api/user/user.model');
+var _user2 = _interopRequireDefault(_user);
 
-var _apiUserUserModel2 = _interopRequireDefault(_apiUserUserModel);
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_apiThingThingModel2['default'].find({}).removeAsync().then(function () {
-  _apiThingThingModel2['default'].create({
+_thing2.default.find({}).remove().then(function () {
+  _thing2.default.create({
     name: 'Development Tools',
-    info: 'Integration with popular tools such as Grunt, Babel, Karma, ' + 'Mocha, JSHint, Node Inspector, Livereload, Protractor, Jade, ' + 'Stylus, Sass, and Less.'
+    info: 'Integration with popular tools such as Bower, Grunt, Babel, Karma, ' + 'Mocha, JSHint, Node Inspector, Livereload, Protractor, Jade, ' + 'Stylus, Sass, and Less.'
   }, {
     name: 'Server and Client integration',
     info: 'Built with a powerful and fun stack: MongoDB, Express, ' + 'AngularJS, and Node.'
@@ -37,8 +37,8 @@ _apiThingThingModel2['default'].find({}).removeAsync().then(function () {
   });
 });
 
-_apiUserUserModel2['default'].find({}).removeAsync().then(function () {
-  _apiUserUserModel2['default'].createAsync({
+_user2.default.find({}).remove().then(function () {
+  _user2.default.create({
     provider: 'local',
     name: 'Test User',
     email: 'test@example.com',

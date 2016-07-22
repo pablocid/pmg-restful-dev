@@ -1,14 +1,20 @@
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.isAuthenticated = isAuthenticated;
+exports.hasRole = hasRole;
+exports.signToken = signToken;
+exports.setTokenCookie = setTokenCookie;
 
 var _passport = require('passport');
 
 var _passport2 = _interopRequireDefault(_passport);
 
-var _configEnvironment = require('../config/environment');
+var _environment = require('../config/environment');
 
-var _configEnvironment2 = _interopRequireDefault(_configEnvironment);
+var _environment2 = _interopRequireDefault(_environment);
 
 var _jsonwebtoken = require('jsonwebtoken');
 
@@ -22,12 +28,14 @@ var _composableMiddleware = require('composable-middleware');
 
 var _composableMiddleware2 = _interopRequireDefault(_composableMiddleware);
 
-var _apiUserUserModel = require('../api/user/user.model');
+var _user = require('../api/user/user.model');
 
-var _apiUserUserModel2 = _interopRequireDefault(_apiUserUserModel);
+var _user2 = _interopRequireDefault(_user);
 
-var validateJwt = (0, _expressJwt2['default'])({
-  secret: _configEnvironment2['default'].secrets.session
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var validateJwt = (0, _expressJwt2.default)({
+  secret: _environment2.default.secrets.session
 });
 
 /**
@@ -35,7 +43,7 @@ var validateJwt = (0, _expressJwt2['default'])({
  * Otherwise returns 403
  */
 function isAuthenticated() {
-  return (0, _composableMiddleware2['default'])()
+  return (0, _composableMiddleware2.default)()
   // Validate jwt
   .use(function (req, res, next) {
     // allow access_token to be passed through query parameter as well
@@ -46,13 +54,13 @@ function isAuthenticated() {
   })
   // Attach user to request
   .use(function (req, res, next) {
-    _apiUserUserModel2['default'].findByIdAsync(req.user._id).then(function (user) {
+    _user2.default.findById(req.user._id).exec().then(function (user) {
       if (!user) {
         return res.status(401).end();
       }
       req.user = user;
       next();
-    })['catch'](function (err) {
+    }).catch(function (err) {
       return next(err);
     });
   });
@@ -66,8 +74,8 @@ function hasRole(roleRequired) {
     throw new Error('Required role needs to be set');
   }
 
-  return (0, _composableMiddleware2['default'])().use(isAuthenticated()).use(function meetsRequirements(req, res, next) {
-    if (_configEnvironment2['default'].userRoles.indexOf(req.user.role) >= _configEnvironment2['default'].userRoles.indexOf(roleRequired)) {
+  return (0, _composableMiddleware2.default)().use(isAuthenticated()).use(function meetsRequirements(req, res, next) {
+    if (_environment2.default.userRoles.indexOf(req.user.role) >= _environment2.default.userRoles.indexOf(roleRequired)) {
       next();
     } else {
       res.status(403).send('Forbidden');
@@ -79,8 +87,7 @@ function hasRole(roleRequired) {
  * Returns a jwt token signed by the app secret
  */
 function signToken(id, role) {
-
-  return _jsonwebtoken2['default'].sign({ _id: id, role: role }, _configEnvironment2['default'].secrets.session, {
+  return _jsonwebtoken2.default.sign({ _id: id, role: role }, _environment2.default.secrets.session, {
     expiresIn: 60 * 60 * 5
   });
 }
@@ -90,16 +97,10 @@ function signToken(id, role) {
  */
 function setTokenCookie(req, res) {
   if (!req.user) {
-    return res.status(404).send('Something went wrong, please try again.');
+    return res.status(404).send('It looks like you aren\'t logged in, please try again.');
   }
   var token = signToken(req.user._id, req.user.role);
-
   res.cookie('token', token);
   res.redirect('/');
 }
-
-exports.isAuthenticated = isAuthenticated;
-exports.hasRole = hasRole;
-exports.signToken = signToken;
-exports.setTokenCookie = setTokenCookie;
 //# sourceMappingURL=auth.service.js.map

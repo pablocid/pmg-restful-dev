@@ -1,22 +1,33 @@
 'use strict';
 
-var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.index = index;
+exports.create = create;
+exports.show = show;
+exports.destroy = destroy;
+exports.changePassword = changePassword;
+exports.me = me;
+exports.authCallback = authCallback;
 
-var _userModel = require('./user.model');
+var _user = require('./user.model');
 
-var _userModel2 = _interopRequireDefault(_userModel);
+var _user2 = _interopRequireDefault(_user);
 
 var _passport = require('passport');
 
 var _passport2 = _interopRequireDefault(_passport);
 
-var _configEnvironment = require('../../config/environment');
+var _environment = require('../../config/environment');
 
-var _configEnvironment2 = _interopRequireDefault(_configEnvironment);
+var _environment2 = _interopRequireDefault(_environment);
 
 var _jsonwebtoken = require('jsonwebtoken');
 
 var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function validationError(res, statusCode) {
   statusCode = statusCode || 422;
@@ -32,109 +43,98 @@ function handleError(res, statusCode) {
   };
 }
 
-function respondWith(res, statusCode) {
-  statusCode = statusCode || 200;
-  return function () {
-    res.status(statusCode).end();
-  };
-}
-
 /**
  * Get list of users
  * restriction: 'admin'
  */
-exports.index = function (req, res) {
-  _userModel2['default'].findAsync({}, '-salt -hashedPassword').then(function (users) {
+function index(req, res) {
+  return _user2.default.find({}, '-salt -password').exec().then(function (users) {
     res.status(200).json(users);
-  })['catch'](handleError(res));
-};
+  }).catch(handleError(res));
+}
 
 /**
  * Creates a new user
  */
-exports.create = function (req, res, next) {
-
-  var newUser = new _userModel2['default'](req.body);
+function create(req, res, next) {
+  var newUser = new _user2.default(req.body);
   newUser.provider = 'local';
   newUser.role = 'user';
-  newUser.saveAsync().spread(function (user) {
-
-    var token = _jsonwebtoken2['default'].sign({ _id: user._id }, _configEnvironment2['default'].secrets.session, {
+  newUser.save().then(function (user) {
+    var token = _jsonwebtoken2.default.sign({ _id: user._id }, _environment2.default.secrets.session, {
       expiresIn: 60 * 60 * 5
     });
-
     res.json({ token: token });
-  })['catch'](validationError(res));
-};
+  }).catch(validationError(res));
+}
 
 /**
  * Get a single user
  */
-exports.show = function (req, res, next) {
+function show(req, res, next) {
   var userId = req.params.id;
 
-  _userModel2['default'].findByIdAsync(userId).then(function (user) {
+  return _user2.default.findById(userId).exec().then(function (user) {
     if (!user) {
       return res.status(404).end();
     }
     res.json(user.profile);
-  })['catch'](function (err) {
+  }).catch(function (err) {
     return next(err);
   });
-};
+}
 
 /**
  * Deletes a user
  * restriction: 'admin'
  */
-exports.destroy = function (req, res) {
-  _userModel2['default'].findByIdAndRemoveAsync(req.params.id).then(function () {
+function destroy(req, res) {
+  return _user2.default.findByIdAndRemove(req.params.id).exec().then(function () {
     res.status(204).end();
-  })['catch'](handleError(res));
-};
+  }).catch(handleError(res));
+}
 
 /**
  * Change a users password
  */
-exports.changePassword = function (req, res, next) {
+function changePassword(req, res, next) {
   var userId = req.user._id;
-
   var oldPass = String(req.body.oldPassword);
   var newPass = String(req.body.newPassword);
 
-  _userModel2['default'].findByIdAsync(userId).then(function (user) {
+  return _user2.default.findById(userId).exec().then(function (user) {
     if (user.authenticate(oldPass)) {
       user.password = newPass;
-      return user.saveAsync().then(function () {
+      return user.save().then(function () {
         res.status(204).end();
-      })['catch'](validationError(res));
+      }).catch(validationError(res));
     } else {
       return res.status(403).end();
     }
   });
-};
+}
 
 /**
  * Get my info
  */
-exports.me = function (req, res, next) {
+function me(req, res, next) {
   var userId = req.user._id;
 
-  _userModel2['default'].findOneAsync({ _id: userId }, '-salt -hashedPassword').then(function (user) {
+  return _user2.default.findOne({ _id: userId }, '-salt -password').exec().then(function (user) {
     // don't ever give out the password or salt
     if (!user) {
       return res.status(401).end();
     }
     res.json(user);
-  })['catch'](function (err) {
+  }).catch(function (err) {
     return next(err);
   });
-};
+}
 
 /**
  * Authentication callback
  */
-exports.authCallback = function (req, res, next) {
+function authCallback(req, res, next) {
   res.redirect('/');
-};
+}
 //# sourceMappingURL=user.controller.js.map
