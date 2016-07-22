@@ -6,7 +6,7 @@
 module.exports = {
   // MongoDB connection options
   mongo: {
-    uri: 'mongodb://localhost/pmgrestful-test'
+    uri: 'mongodb://localhost/pmgrestfulapi-test'
   },
   sequelize: {
     uri: 'sqlite://',

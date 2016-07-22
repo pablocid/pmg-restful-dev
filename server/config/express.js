@@ -42,7 +42,7 @@ exports.default = function (app) {
     resave: false,
     store: new MongoStore({
       mongooseConnection: _mongoose2.default.connection,
-      db: 'pmg-restful'
+      db: 'pmg-restful-api'
     })
   }));
 

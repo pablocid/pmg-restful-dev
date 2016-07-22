@@ -7,7 +7,7 @@
 
 module.exports = {
   DOMAIN: 'http://localhost:9000',
-  SESSION_SECRET: 'pmgrestful-secret',
+  SESSION_SECRET: 'pmgrestfulapi-secret',
 
   FACEBOOK_ID: 'app-id',
   FACEBOOK_SECRET: 'secret',

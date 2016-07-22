@@ -7,7 +7,7 @@ module.exports = {
 
   // MongoDB connection options
   mongo: {
-    uri: 'mongodb://localhost/pmgrestful-dev'
+    uri: 'mongodb://localhost/pmgrestfulapi-dev'
   },
 
   // Seed database on startup
