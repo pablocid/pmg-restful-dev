@@ -9,6 +9,23 @@ angular.module('pmgRestfulApiApp', ['pmgRestfulApiApp.auth', 'pmgRestfulApiApp.a
 
 'use strict';
 
+angular.module('pmgRestfulApiApp.admin', ['pmgRestfulApiApp.auth', 'ui.router']);
+//# sourceMappingURL=admin.module.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp.auth', ['pmgRestfulApiApp.constants', 'pmgRestfulApiApp.util', 'ngCookies', 'ui.router']).config(function ($httpProvider) {
+  $httpProvider.interceptors.push('authInterceptor');
+});
+//# sourceMappingURL=auth.module.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp.util', []);
+//# sourceMappingURL=util.module.js.map
+
+'use strict';
+
 angular.module('pmgRestfulApiApp').config(function ($stateProvider) {
   $stateProvider.state('login', {
     url: '/login',
@@ -213,11 +230,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 'use strict';
 
-angular.module('pmgRestfulApiApp.admin', ['pmgRestfulApiApp.auth', 'ui.router']);
-//# sourceMappingURL=admin.module.js.map
-
-'use strict';
-
 angular.module('pmgRestfulApiApp.admin').config(function ($stateProvider) {
   $stateProvider.state('admin', {
     url: '/admin',
@@ -304,13 +316,6 @@ angular.module('pmgRestfulApiApp').config(function ($stateProvider) {
   });
 });
 //# sourceMappingURL=main.js.map
-
-'use strict';
-
-angular.module('pmgRestfulApiApp.auth', ['pmgRestfulApiApp.constants', 'pmgRestfulApiApp.util', 'ngCookies', 'ui.router']).config(function ($httpProvider) {
-  $httpProvider.interceptors.push('authInterceptor');
-});
-//# sourceMappingURL=auth.module.js.map
 
 'use strict';
 
@@ -844,11 +849,6 @@ angular.module('pmgRestfulApiApp').factory('socket', function (socketFactory) {
   };
 });
 //# sourceMappingURL=socket.service.js.map
-
-'use strict';
-
-angular.module('pmgRestfulApiApp.util', []);
-//# sourceMappingURL=util.module.js.map
 
 'use strict';
 
