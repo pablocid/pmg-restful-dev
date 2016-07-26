@@ -29,7 +29,7 @@ var all = {
 
   // Secret for session, you will want to change this and make it an environment variable
   secrets: {
-    session: 'pmg-restful-api-secret'
+    session: process.env.SECRET_SESSION || 'pmg-restful-api-secret'
   },
 
   // MongoDB connection options
@@ -57,6 +57,10 @@ var all = {
     clientID: process.env.GOOGLE_ID || 'id',
     clientSecret: process.env.GOOGLE_SECRET || 'secret',
     callbackURL: (process.env.DOMAIN || '') + '/auth/google/callback'
+  },
+  AWS: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'id',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'secret'
   }
 };
 

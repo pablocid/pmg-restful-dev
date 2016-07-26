@@ -31,9 +31,9 @@ require('./twitter/passport').setup(_user2.default, _environment2.default);
 var router = _express2.default.Router();
 
 router.use('/local', require('./local').default);
-router.use('/facebook', require('./facebook').default);
-router.use('/twitter', require('./twitter').default);
-router.use('/google', require('./google').default);
+//router.use('/facebook', require('./facebook').default);
+//router.use('/twitter', require('./twitter').default);
+//router.use('/google', require('./google').default);
 
 exports.default = router;
 //# sourceMappingURL=index.js.map

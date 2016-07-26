@@ -18,6 +18,9 @@ module.exports = {
   GOOGLE_ID: 'app-id',
   GOOGLE_SECRET: 'secret',
 
+  AWS_ACCESS_KEY_ID: 'AKIAIUMTBENYRPDCHJ7Q',
+  AWS_SECRET_ACCESS_KEY: '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',
+
   // Control debug level for modules using visionmedia/debug
   DEBUG: ''
 };

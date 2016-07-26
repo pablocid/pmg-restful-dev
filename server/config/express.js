@@ -29,6 +29,7 @@ exports.default = function (app) {
   app.use((0, _compression2.default)());
   app.use(_bodyParser2.default.urlencoded({ extended: false }));
   app.use(_bodyParser2.default.json());
+  app.use((0, _cors2.default)());
   app.use((0, _methodOverride2.default)());
   app.use((0, _cookieParser2.default)());
   app.use(_passport2.default.initialize());
@@ -63,7 +64,7 @@ exports.default = function (app) {
         includeSubDomains: true,
         preload: true
       },
-      xssProtection: true
+      xssProtection: false
     }));
   }
 
@@ -129,6 +130,10 @@ var _passport2 = _interopRequireDefault(_passport);
 var _expressSession = require('express-session');
 
 var _expressSession2 = _interopRequireDefault(_expressSession);
+
+var _cors = require('cors');
+
+var _cors2 = _interopRequireDefault(_cors);
 
 var _connectMongo = require('connect-mongo');
 
