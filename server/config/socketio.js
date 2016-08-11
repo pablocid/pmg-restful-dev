@@ -71,6 +71,8 @@ function onConnect(socket) {
   });
 
   // Insert sockets below
+  require('../api/schm/schm.socket').register(socket);
+  require('../api/record/record.socket').register(socket);
   require('../api/upload/upload.socket').register(socket);
   require('../api/thing/thing.socket').register(socket);
 }
