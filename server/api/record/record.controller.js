@@ -26,6 +26,10 @@ var _record = require('./record.model');
 
 var _record2 = _interopRequireDefault(_record);
 
+var _schm = require('../schm/schm.model');
+
+var _schm2 = _interopRequireDefault(_schm);
+
 var _q = require('q');
 
 var _q2 = _interopRequireDefault(_q);
@@ -84,15 +88,21 @@ function checkParam(param, dataType) {
   }
   var response = false;
 
+  if (dataType === 'string') {
+    if (typeof param === 'string' && param.length > 0) {
+      response = true;
+    }
+  }
+
   if (dataType === 'number') {
-    console.log('chequea numero');
+    //console.log('chequea numero')
     if (typeof param === 'number') {
       response = true;
     }
     if (typeof param === 'string') {
 
       if (/^\d*$/.test(param)) {
-        console.log('es  numero');
+        //console.log('es  numero')
         response = true;
       }
     }
@@ -160,15 +170,16 @@ function index(req, res) {
       p["attributes"]["$elemMatch"][filter[i].datatype] = filter[i].value;
       query["$and"].push(p);
     }
-    console.log(filter);
+    //console.log(filter);
   }
 
-  _q2.default.all([_record2.default.find(query).count().exec(), _record2.default.find(query).skip(items * (page - 1)).limit(items)]).spread(function (count, data) {
+  _q2.default.all([_record2.default.find(query).count().exec(), _record2.default.find(query).skip(items * (page - 1)).limit(items), _schm2.default.findById(query.schm)]).spread(function (count, data, schema) {
     respondWithResult(res)({
       page: parseInt(page),
       pages: Math.ceil(count / items),
       length: data.length,
       totalLength: count,
+      schema: schema,
       items: data
     });
   }).fail(handleError(res));
@@ -176,7 +187,45 @@ function index(req, res) {
 
 // Gets a single Record from the DB
 function show(req, res) {
-  return _record2.default.findById(req.params.id).exec().then(handleEntityNotFound(res)).then(respondWithResult(res)).catch(handleError(res));
+  //check if id is objectId
+  var query;
+  if (!checkParam(req.params.id, 'objectId') && checkParam(req.query.schm, 'objectId') && checkParam(req.query.key, 'string') && checkParam(req.query.datatype, 'string')) {
+    query = { schm: req.query.schm, attributes: {} };
+    query.attributes["$elemMatch"] = {};
+    query.attributes["$elemMatch"]["id"] = req.query.key;
+    query.attributes["$elemMatch"][req.query.datatype] = req.params.id;
+  } else {
+    query = req.params.id;
+  }
+
+  return _q2.default.fcall(function (x) {
+    return query;
+  }).then(function (res) {
+    if (typeof res === 'string') {
+      return _record2.default.findById(res);
+    } else {
+      return _record2.default.find(query);
+    }
+  }).then(function (res) {
+    if (Array.isArray(res)) {
+      return _schm2.default.findById(req.query.schm).then(function (schm) {
+        return {
+          length: res.length,
+          schema: schm,
+          record: res[0]
+        };
+      });
+    } else {
+      return _schm2.default.findById(res.schm).then(function (schm) {
+        return {
+          schema: schm,
+          record: res
+        };
+      });
+    }
+  }).then(respondWithResult(res)).catch(handleError(res)).done(function (a) {
+    console.log("DONE " + a);
+  });
 }
 
 // Creates a new Record in the DB
