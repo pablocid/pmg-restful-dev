@@ -26,15 +26,13 @@ var _record = require('./record.model');
 
 var _record2 = _interopRequireDefault(_record);
 
-var _schm = require('../schm/schm.model');
-
-var _schm2 = _interopRequireDefault(_schm);
-
 var _q = require('q');
 
 var _q2 = _interopRequireDefault(_q);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Schm = require('../schm/schm.controller');
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -172,8 +170,12 @@ function index(req, res) {
     }
     //console.log(filter);
   }
+  var qAllArr = [_record2.default.find(query).count().exec(), _record2.default.find(query).skip(items * (page - 1)).limit(items)];
+  if (query.schm) {
+    qAllArr.push(Schm.fullSchm(query.schm));
+  }
 
-  _q2.default.all([_record2.default.find(query).count().exec(), _record2.default.find(query).skip(items * (page - 1)).limit(items), _schm2.default.findById(query.schm)]).spread(function (count, data, schema) {
+  _q2.default.all(qAllArr).spread(function (count, data, schema) {
     respondWithResult(res)({
       page: parseInt(page),
       pages: Math.ceil(count / items),
@@ -208,7 +210,7 @@ function show(req, res) {
     }
   }).then(function (res) {
     if (Array.isArray(res)) {
-      return _schm2.default.findById(req.query.schm).then(function (schm) {
+      return Schm.findById(req.query.schm).then(function (schm) {
         return {
           length: res.length,
           schema: schm,
@@ -216,7 +218,7 @@ function show(req, res) {
         };
       });
     } else {
-      return _schm2.default.findById(res.schm).then(function (schm) {
+      return Schm.findById(res.schm).then(function (schm) {
         return {
           schema: schm,
           record: res
