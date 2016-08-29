@@ -191,7 +191,7 @@ function index(req, res) {
 function show(req, res) {
   //check if id is objectId
   var query;
-  if (!checkParam(req.params.id, 'objectId') && checkParam(req.query.schm, 'objectId') && checkParam(req.query.key, 'string') && checkParam(req.query.datatype, 'string')) {
+  if (!checkParam(req.params.id, 'objectId') && checkParam(req.query.schm, 'objectId') && checkParam(req.query.key, 'objectId') && checkParam(req.query.datatype, 'string')) {
     query = { schm: req.query.schm, attributes: {} };
     query.attributes["$elemMatch"] = {};
     query.attributes["$elemMatch"]["id"] = req.query.key;
@@ -210,7 +210,7 @@ function show(req, res) {
     }
   }).then(function (res) {
     if (Array.isArray(res)) {
-      return Schm.findById(req.query.schm).then(function (schm) {
+      return Schm.fullSchm(req.query.schm).then(function (schm) {
         return {
           length: res.length,
           schema: schm,
@@ -218,7 +218,7 @@ function show(req, res) {
         };
       });
     } else {
-      return Schm.findById(res.schm).then(function (schm) {
+      return Schm.fullSchm(res.schm).then(function (schm) {
         return {
           schema: schm,
           record: res
