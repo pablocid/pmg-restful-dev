@@ -228,13 +228,19 @@ function fullSchm(schmId) {
   var secondCall = function secondCall(d) {
     var query = { "$or": [] };
     for (var i = 0; i < d.list.length; i++) {
-      query["$or"].push({ _id: d.list[i] });
+      query["$or"].push({ type: "attrInputConf", attributes: { "$elemMatch": { id: "attribute", reference: d.list[i] } } });
     }
-    d.query = query;
-    return d;
+    return _schm2.default.find(query).then(function (s) {
+      d.attrInputConf = s;
+      return d;
+    });
   };
   var thirdCall = function thirdCall(d) {
-    return _schm2.default.find(d.query).then(function (s) {
+    var query = { "$or": [] };
+    for (var i = 0; i < d.list.length; i++) {
+      query["$or"].push({ _id: d.list[i] });
+    }
+    return _schm2.default.find(query).then(function (s) {
       d.attributes = s;
       return d;
     });
@@ -243,21 +249,23 @@ function fullSchm(schmId) {
     var inputRefs = d.attributes.map(function (x) {
       return findValueByVarHelper(x.attributes, "id", "input", "reference");
     });
+    //console.log(inputRefs)
     var queryInputs = { "$or": [] };
     for (var i = 0; i < inputRefs.length; i++) {
       queryInputs["$or"].push({ _id: inputRefs[i] });
     }
-    console.log(inputRefs);
-    //d.queryInputs = queryInputs;
+    console.log(queryInputs);
     return _schm2.default.find(queryInputs).then(function (s) {
       d.inputs = s;
       return d;
     });
   };
+
   var concatCall = function concatCall(d) {
     var concat = [d.schema];
     concat = concat.concat(d.attributes);
     concat = concat.concat(d.schmAttrInputConf);
+    concat = concat.concat(d.attrInputConf);
     concat = concat.concat(d.inputs);
     return concat;
   };
