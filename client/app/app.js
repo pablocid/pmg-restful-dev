@@ -252,6 +252,1294 @@ angular.module('pmgRestfulApiApp.admin').config(function ($stateProvider) {
 
 'use strict';
 
+angular.module('pmgRestfulApiApp').directive('formAic', function ($compile, $log, SchemaObj) {
+  return {
+    templateUrl: 'app/directives/formAic/formAic.html',
+    restrict: 'EA',
+    scope: {
+      reg: "=",
+      saveCb: '&'
+    },
+    link: function link(scope, element, attrs) {
+      scope.reg.then(function (reg) {
+        scope.record = new SchemaObj(reg);
+        var theme = element.clone();
+        element.empty();
+        var form = theme.find("form").clone().empty();
+
+        var inputId = theme.find("#_id").clone();
+        var inputType = theme.find("#type").clone();
+        inputType.find("select").attr("disabled", "true");
+        var inputName = theme.find("#iname").clone();
+
+        form.append(inputId);
+        form.append(inputType);
+        form.append(inputName);
+
+        var attrForm = theme.find("#attributes").clone().empty();
+        attrForm.append('<h3>Attributes</h3>');
+
+        // en el caso del schema los attr fijos son name:string, attributes:list , keys: listOfObj
+        var attrName = theme.find("#attrName").clone();
+        attrForm.append(attrName);
+
+        var attrDesc = theme.find("#description").clone();
+        attrForm.append(attrDesc);
+
+        var attrAttribute = theme.find("#attrAttribute").clone();
+        attrForm.append(attrAttribute);
+
+        var attrInput = theme.find("#attrInput").clone();
+        attrForm.append(attrInput);
+
+        form.append(attrForm);
+
+        /**************************************** */
+
+        var addAttrForm = theme.find("#addAttrForm").clone().empty();
+        form.append(addAttrForm);
+
+        addAttrForm.append('<h3>Attributes adicionales</h3>');
+        /***++++ insertar Attributes adicionales */
+        function getInput(id, dt) {
+          var view;
+          //console.log(dt);
+          switch (dt) {
+            case 'number':
+              view = theme.find("#numberTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetNumber('" + id + "','" + dt + "')");
+              break;
+            case 'string':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
+            case 'boolean':
+              view = theme.find("#booleanTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetBoolean('" + id + "','" + dt + "')");
+              break;
+            case 'date':
+              view = theme.find("#dateTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
+              //view.find('input').attr("value",new Date())
+              break;
+          }
+          var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
+          eraseBtn.attr("attrId", id);
+          view.append(eraseBtn);
+          eraseBtn.on('click', function (args) {
+            var ide = eraseBtn.attr("attrId");
+            console.log("/*************************************************** " + ide);
+            scope.record.removeKeyAttr(ide);
+            scope.record.removeAttr(ide);
+            view.remove();
+            $compile(form)(scope);
+          });
+          return view;
+        }
+
+        var keys = scope.record.getAttrById("keys", "listOfObj");
+        if (keys && keys.length) {
+          keys.forEach(function (item) {
+            addAttrForm.append(getInput(item.id, item.string));
+          });
+        }
+
+        /***************************************** */
+
+        var addAttrSelector = theme.find("#addAttrSelector").clone();
+        var btnAddAttr = addAttrSelector.find("#btnAddAttr");
+
+        btnAddAttr.on('click', function (args) {
+          var attrId = addAttrSelector.find("input").val();
+          var attrDt = addAttrSelector.find("select").val();
+
+          if (attrId) {
+            var view = getInput(attrId, attrDt);
+            $compile(view)(scope);
+            //console.log(attrId +" -- "+attrDt)
+            addAttrForm.append(view);
+            //agregar a lista de keys
+            if (!scope.record.getAttrById("keys", "listOfObj")) {
+              scope.record.setAttrById("keys", "listOfObj", []);
+            }
+            var array = scope.record.getAttrById("keys", "listOfObj");
+            array.push({ id: attrId, string: attrDt });
+            scope.record.setAttrById("keys", "listOfObj", array);
+            addAttrSelector.find("input").val('');
+          }
+        });
+        form.append(addAttrSelector);
+
+        /*********************save block******************** */
+        var saveBlock = theme.find('#saveBlock').clone();
+        saveBlock.find("button").on('click', function () {
+          scope.saveCb({ record: scope.record });
+        });
+        form.append(saveBlock);
+
+        /***************************************** */
+
+        form.append("{{record}}");
+        $compile(form)(scope);
+        element.append("<h1>Formulario AttrInputConf</h1>");
+        element.append(form);
+      });
+    }
+  };
+});
+//# sourceMappingURL=formAic.directive.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp').directive('formAttr', function ($compile, $log, SchemaObj) {
+  return {
+    templateUrl: 'app/directives/formAttr/formAttr.html',
+    restrict: 'EA',
+    scope: {
+      reg: '=',
+      saveCb: '&'
+    },
+    link: function link(scope, element, attrs) {
+      scope.reg.then(function (reg) {
+        scope.record = new SchemaObj(reg);
+        var theme = element.clone();
+        element.empty();
+        var form = theme.find("form").clone().empty();
+
+        var inputId = theme.find("#_id").clone();
+        var inputType = theme.find("#type").clone();
+        inputType.find("select").attr("disabled", "true");
+        var inputName = theme.find("#iname").clone();
+
+        form.append(inputId);
+        form.append(inputType);
+        form.append(inputName);
+
+        var attrForm = theme.find("#attributes").clone().empty();
+        attrForm.append('<h3>Attributes</h3>');
+
+        var attrName = theme.find("#attrName").clone();
+        attrForm.append(attrName);
+
+        var attrDesc = theme.find("#description").clone();
+        attrForm.append(attrDesc);
+
+        var attrInput = theme.find("#attrInput").clone();
+        attrForm.append(attrInput);
+
+        form.append(attrForm);
+
+        /**************************************** */
+
+        var addAttrForm = theme.find("#addAttrForm").clone().empty();
+        form.append(addAttrForm);
+
+        addAttrForm.append('<h3>Attributes adicionales</h3>');
+        /***++++ insertar Attributes adicionales */
+        function getInput(id, dt) {
+          var view;
+          //console.log(dt);
+          switch (dt) {
+            case 'number':
+              view = theme.find("#numberTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetNumber('" + id + "','" + dt + "')");
+              break;
+            case 'string':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
+            case 'boolean':
+              view = theme.find("#booleanTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetBoolean('" + id + "','" + dt + "')");
+              break;
+            case 'date':
+              view = theme.find("#dateTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
+              //view.find('input').attr("value",new Date())
+              break;
+          }
+          var eraseBtn = angular.element('<button type="button" class="btn btn-danger">Borrar Attributo </button>');
+          eraseBtn.attr("attrId", id);
+          view.append(eraseBtn);
+          eraseBtn.on('click', function (args) {
+            var ide = eraseBtn.attr("attrId");
+            console.log("/*************************************************** " + ide);
+            scope.record.removeKeyAttr(ide);
+            scope.record.removeAttr(ide);
+            view.remove();
+            $compile(form)(scope);
+          });
+          return view;
+        }
+
+        var keys = scope.record.getAttrById("keys", "listOfObj");
+        if (keys && keys.length) {
+          keys.forEach(function (item) {
+            addAttrForm.append(getInput(item.id, item.string));
+          });
+        }
+
+        /***************************************** */
+
+        var addAttrSelector = theme.find("#addAttrSelector").clone();
+        var btnAddAttr = addAttrSelector.find("#btnAddAttr");
+
+        btnAddAttr.on('click', function (args) {
+          var attrId = addAttrSelector.find("input").val();
+          var attrDt = addAttrSelector.find("select").val();
+
+          if (attrId) {
+            var view = getInput(attrId, attrDt);
+            $compile(view)(scope);
+            //console.log(attrId +" -- "+attrDt)
+            addAttrForm.append(view);
+            //agregar a lista de keys
+            if (!scope.record.getAttrById("keys", "listOfObj")) {
+              scope.record.setAttrById("keys", "listOfObj", []);
+            }
+            var array = scope.record.getAttrById("keys", "listOfObj");
+            array.push({ id: attrId, string: attrDt });
+            scope.record.setAttrById("keys", "listOfObj", array);
+            addAttrSelector.find("input").val('');
+          }
+        });
+        form.append(addAttrSelector);
+
+        /*********************save block******************** */
+        var saveBlock = theme.find('#saveBlock').clone();
+        saveBlock.find("button").on('click', function () {
+          scope.saveCb({ record: scope.record });
+        });
+        form.append(saveBlock);
+
+        /***************************************** */
+
+        form.append("{{record}}");
+        $compile(form)(scope);
+        element.append("<h1>Formulario Attributo</h1>");
+        element.append(form);
+      });
+    }
+  };
+});
+//# sourceMappingURL=formAttr.directive.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp').directive('formBuilder', function ($compile, $log, SchemaObj) {
+  return {
+    templateUrl: 'app/directives/formBuilder/formBuilder.html',
+    restrict: 'EA',
+    scope: {
+      reg: '=',
+      saveCb: '&'
+    },
+    link: function link(scope, element, attrs) {
+
+      scope.reg.then(function (reg) {
+        scope.record = new SchemaObj(reg);
+        var theme = element.clone();
+        element.empty();
+        var form = theme.find("form").clone().empty();
+
+        var inputId = theme.find("#_id").clone();
+        var inputType = theme.find("#type").clone();
+        var inputName = theme.find("#iname").clone();
+
+        form.append(inputId);
+        form.append(inputType);
+        form.append(inputName);
+
+        var attrForm = theme.find("#attributes").clone().empty();
+        attrForm.append('<h3>Attributes</h3>');
+        var blockAttr = theme.find("#blockAttr").clone();
+
+        // en el caso del schema los attr fijos son name:string, attributes:list , keys: listOfObj
+        var attrName = theme.find("#attrName").clone();
+        attrForm.append(attrName);
+
+        var attrDesc = theme.find("#description").clone();
+        attrForm.append(attrDesc);
+
+        var attrAttributes = theme.find("#attrAttributes").clone();
+        attrForm.append(attrAttributes);
+
+        form.append(attrForm);
+
+        var addAttrForm = theme.find("#addAttrForm").clone().empty();
+        form.append(addAttrForm);
+
+        addAttrForm.append('<h3>Attributes adicionales</h3>');
+        /***++++ insertar Attributes adicionales */
+        function getInput(id, dt) {
+          var view;
+          //console.log(dt);
+          switch (dt) {
+            case 'number':
+              view = theme.find("#numberTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetNumber('" + id + "','" + dt + "')");
+              break;
+            case 'string':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
+            case 'boolean':
+              view = theme.find("#booleanTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetBoolean('" + id + "','" + dt + "')");
+              break;
+            case 'date':
+              view = theme.find("#dateTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
+              //view.find('input').attr("value",new Date())
+              break;
+          }
+          var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
+          eraseBtn.attr("attrId", id);
+          view.append(eraseBtn);
+          eraseBtn.on('click', function (args) {
+            var ide = eraseBtn.attr("attrId");
+            console.log("/*************************************************** " + ide);
+            scope.record.removeKeyAttr(ide);
+            scope.record.removeAttr(ide);
+            view.remove();
+            $compile(form)(scope);
+          });
+          return view;
+        }
+
+        var keys = scope.record.getAttrById("keys", "listOfObj");
+        if (keys && keys.length) {
+          keys.forEach(function (item) {
+            addAttrForm.append(getInput(item.id, item.string));
+          });
+        }
+
+        /***************************************** */
+
+        var addAttrSelector = theme.find("#addAttrSelector").clone();
+        var btnAddAttr = addAttrSelector.find("#btnAddAttr");
+
+        btnAddAttr.on('click', function (args) {
+          var attrId = addAttrSelector.find("input").val();
+          var attrDt = addAttrSelector.find("select").val();
+
+          if (attrId) {
+            var view = getInput(attrId, attrDt);
+            $compile(view)(scope);
+            //console.log(attrId +" -- "+attrDt)
+            addAttrForm.append(view);
+            //agregar a lista de keys
+            if (!scope.record.getAttrById("keys", "listOfObj")) {
+              scope.record.setAttrById("keys", "listOfObj", []);
+            }
+            var array = scope.record.getAttrById("keys", "listOfObj");
+            array.push({ id: attrId, string: attrDt });
+            scope.record.setAttrById("keys", "listOfObj", array);
+            addAttrSelector.find("input").val('');
+          }
+        });
+
+        form.append(addAttrSelector);
+
+        /*********************save block******************** */
+
+        var saveBlock = theme.find('#saveBlock').clone();
+        saveBlock.find("button").on('click', function () {
+          scope.saveCb({ record: scope.record });
+        });
+        form.append(saveBlock);
+
+        /***************************************** */
+
+        form.append("{{record}}");
+        element.append(form);
+
+        scope.find = function (array, key, value, target) {
+          var self = this;
+          if (!Array.isArray(array)) {
+            return null;
+          }
+
+          var index = array.map(function (x) {
+            return x[key];
+          }).indexOf(value);
+
+          if (index !== -1) {
+            if (target === undefined) {
+              return array[index];
+            } else {
+              return array[index][target];
+            }
+          } else {
+            return null;
+          }
+        };
+        $compile(form)(scope);
+        var DefaultList = [{ id: "name", string: "string" }, { id: "attribute", string: "reference" }, { id: "keys", string: "listOfObj" }];
+
+        var sdf = angular.element('\n            <h3>Lista de attributos compatibles</h3>\n              <ul>\n                  <li ng-repeat="a in find(reg.attributes,\'id\',\'keys\',\'listOfObj\')">id:{{a.id}} - dataType: {{a.string}}</li>\n              </ul>\n\n              <form novalidate name="myForm" class="container-fluid">\n                <div class="form-group has-feedback">\n                  <label for="">_id</label>\n                  <input type="text" ng-model="reg._id"  class="form-control" disabled>\n                </div>\n                <div class="form-group has-feedback">\n                  <label for="">type</label>\n                  <input type="text" ng-model="reg.type"  class="form-control" disabled>\n                </div>\n                <div id="attributes" class="well">\n                  <h3>Attributes</h3>\n                  <div class="form-group has-feedback" ng-repeat="attr in reg.attributes">\n                      <label for="">id: {{attr.id}}</label>\n                      <input type="text" ng-model="attr.id"  class="form-control" >\n                  </div>\n                </div>\n                <button id="btnAddAttr"> {{aa}}</button>\n              </form>\n          ');
+
+        var findDtAttr = function findDtAttr(keys) {
+          return function (attrId) {
+            var index = keys.map(function (x) {
+              return x.id;
+            }).indexOf(attrId);
+            if (index === -1) {
+              return 0;
+            }
+            return keys[index].string;
+          };
+        };
+
+        var attributes = element.find("#attributes");
+
+        //attributes.append("<div>HOLA</div>")
+
+      }); //end Then
+    }
+  };
+});
+//# sourceMappingURL=formBuilder.directive.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp').directive('formInput', function ($compile, $log, SchemaObj) {
+  return {
+    templateUrl: 'app/directives/formInput/formInput.html',
+    restrict: 'EA',
+    scope: {
+      reg: '=',
+      saveCb: '&'
+    },
+    link: function link(scope, element, attrs) {
+      console.log("formInput");
+      scope.dataTypes = ['string', 'number', 'boolean', 'date', 'reference', 'list', 'listOfObj'];
+      scope.reg.then(function (reg) {
+        scope.record = new SchemaObj(reg);
+        var theme = element.clone();
+        element.empty();
+        var form = theme.find("form").clone().empty();
+
+        var inputId = theme.find("#_id").clone();
+        var inputType = theme.find("#type").clone();
+        inputType.find("select").attr("disabled", "true");
+        var inputName = theme.find("#iname").clone();
+
+        form.append(inputId);
+        form.append(inputType);
+        form.append(inputName);
+
+        var attrForm = theme.find("#attributes").clone().empty();
+        attrForm.append('<h3>Attributes</h3>');
+        var blockAttr = theme.find("#blockAttr").clone();
+
+        // en el caso del schema los attr fijos son name:string, attributes:list , keys: listOfObj
+        var attrName = theme.find("#attrName").clone();
+        attrForm.append(attrName);
+
+        var attrDesc = theme.find("#description").clone();
+        attrForm.append(attrDesc);
+
+        var attrDatatype = theme.find("#attrDatatype").clone();
+        attrForm.append(attrDatatype);
+
+        form.append(attrForm);
+
+        /************************ attrConfForm *************************/
+        var attrConfForm = theme.find("#addAttrForm").clone().empty();
+        form.append(attrConfForm);
+        attrConfForm.append('<h3>Attributes Configuration: data and type declaration</h3>');
+
+        var blockACKtheme = theme.find("#listOfObj").clone();
+        attrConfForm.append(blockACKtheme);
+        var ackTable = blockACKtheme.find("table");
+        blockACKtheme.append(ackTable);
+
+        var attrConfKeys = scope.record.getAttrById("attrConf", "listOfObj");
+        if (attrConfKeys && attrConfKeys.length) {
+          attrConfKeys.forEach(function (x) {
+            var tr = angular.element('<tr></tr');
+            tr.append("<td>" + x.id + "</td>");
+            tr.append("<td>" + x.string + "</td>");
+            tr.append('<td><button type="button" class="btn btn-sm btn-danger">remove</button></td>');
+            tr.attr("attrId", x.id);
+            tr.find("button").on('click', function () {
+              var id = tr.attr("attrId");
+              tr.remove();
+              $compile(blockACKtheme)(scope);
+            });
+            ackTable.append(tr);
+          });
+        }
+
+        var ackSelector = theme.find("#addAttrSelector").clone();
+        blockACKtheme.append(ackSelector);
+        var ackAdd = ackSelector.find("#btnAddAttr");
+
+        ackAdd.on('click', function (args) {
+          var attrId = ackSelector.find("input").val();
+          var attrDt = ackSelector.find("select").val();
+
+          if (attrId && scope.record.addAttrLOO("attrConf", attrId, attrDt)) {
+            var tr = angular.element('<tr></tr');
+            tr.append("<td>" + attrId + "</td>");
+            tr.append("<td>" + attrDt + "</td>");
+            tr.append('<td><button type="button" class="btn btn-sm btn-danger">remove</button></td>');
+            tr.attr("attrId", attrId);
+            tr.find("button").on('click', function () {
+              var id = tr.attr("attrId");
+              scope.record.removeAttrLOO("attrConf", id);
+              tr.remove();
+              ackSelector.find("input").val('');
+              $compile(form)(scope);
+            });
+            ackTable.append(tr);
+          }
+          $compile(form)(scope);
+        });
+
+        /************************ attrInputConfForm *************************/
+
+        var attrInputConfForm = theme.find("#addAttrForm").clone().empty();
+        form.append(attrInputConfForm);
+        attrInputConfForm.append('<h3>Attributes Inputs Configuration: data and type declaration</h3>');
+
+        var attrInpuTheme = theme.find("#listOfObj").clone();
+        attrInputConfForm.append(attrInpuTheme);
+        var aicTable = attrInpuTheme.find("table");
+        attrInpuTheme.append(aicTable);
+
+        var attrConfKeys = scope.record.getAttrById("attrInputConf", "listOfObj");
+        if (attrConfKeys) {
+          attrConfKeys.forEach(function (x) {
+            var tr = angular.element('<tr></tr');
+            tr.append("<td>" + x.id + "</td>");
+            tr.append("<td>" + x.string + "</td>");
+            tr.append('<td><button type="button" class="btn btn-sm btn-danger">remove</button></td>');
+            tr.attr("attrId", x.id);
+            tr.find("button").on('click', function () {
+              var id = tr.attr("attrId");
+              tr.remove();
+              $compile(attrInpuTheme)(scope);
+            });
+            aicTable.append(tr);
+          });
+        }
+
+        var aicSelector = theme.find("#addAttrSelector").clone();
+        attrInpuTheme.append(aicSelector);
+        var ackAdd = aicSelector.find("#btnAddAttr");
+
+        ackAdd.on('click', function (args) {
+          var attrId = aicSelector.find("input").val();
+          var attrDt = aicSelector.find("select").val();
+
+          if (attrId && scope.record.addAttrLOO("attrInputConf", attrId, attrDt)) {
+            var tr = angular.element('<tr></tr');
+            tr.append("<td>" + attrId + "</td>");
+            tr.append("<td>" + attrDt + "</td>");
+            tr.append('<td><button type="button" class="btn btn-sm btn-danger">remove</button></td>');
+            tr.attr("attrId", attrId);
+            tr.find("button").on('click', function () {
+              var id = tr.attr("attrId");
+              console.log("Removing attrInputConf => ID: " + id + " -- ");
+              scope.record.removeAttrLOO("attrInputConf", id);
+              tr.remove();
+              aicSelector.find("input").val('');
+              $compile(form)(scope);
+            });
+            aicTable.append(tr);
+          }
+          $compile(form)(scope);
+        });
+
+        //attrInputConfForm.append(attrInpuTheme);
+
+
+        /**************************************** */
+
+        /************************ schmAttrInputConfForm *************************/
+
+        var schmAttrInputConfForm = theme.find("#addAttrForm").clone().empty();
+        form.append(schmAttrInputConfForm);
+        schmAttrInputConfForm.append('<h3>Schema Attributes Inputs Configuration: data and type declaration</h3>');
+
+        var schmAttrInpuTheme = theme.find("#listOfObj").clone();
+        schmAttrInputConfForm.append(schmAttrInpuTheme);
+        var saicTable = schmAttrInpuTheme.find("table");
+        schmAttrInpuTheme.append(saicTable);
+
+        var schmAttrConfKeys = scope.record.getAttrById("schmAttrInputConf", "listOfObj");
+        if (schmAttrConfKeys && schmAttrConfKeys.length) {
+          schmAttrConfKeys.forEach(function (x) {
+            var tr = angular.element('<tr></tr');
+            tr.append("<td>" + x.id + "</td>");
+            tr.append("<td>" + x.string + "</td>");
+            tr.append('<td><button type="button" class="btn btn-sm btn-danger">remove</button></td>');
+            tr.attr("attrId", x.id);
+            tr.find("button").on('click', function () {
+              var id = tr.attr("attrId");
+              tr.remove();
+              $compile(schmAttrInpuTheme)(scope);
+            });
+            saicTable.append(tr);
+          });
+        }
+
+        var saicSelector = theme.find("#addAttrSelector").clone();
+        schmAttrInpuTheme.append(saicSelector);
+        var ackAdd = saicSelector.find("#btnAddAttr");
+
+        ackAdd.on('click', function (args) {
+          var attrId = saicSelector.find("input").val();
+          var attrDt = saicSelector.find("select").val();
+
+          if (attrId && scope.record.addAttrLOO("schmAttrInputConf", attrId, attrDt)) {
+            var tr = angular.element('<tr></tr');
+            tr.append("<td>" + attrId + "</td>");
+            tr.append("<td>" + attrDt + "</td>");
+            tr.append('<td><button type="button" class="btn btn-sm btn-danger">remove</button></td>');
+            tr.attr("attrId", attrId);
+            tr.find("button").on('click', function () {
+              var id = tr.attr("attrId");
+              console.log("Removing schmAttrInputConf => ID: " + id + " -- ");
+              scope.record.removeAttrLOO("schmAttrInputConf", id);
+              tr.remove();
+              saicSelector.find("input").val('');
+              $compile(form)(scope);
+            });
+            saicTable.append(tr);
+          }
+          $compile(form)(scope);
+        });
+
+        /**************************************** */
+
+        /**************************************** */
+
+        var addAttrForm = theme.find("#addAttrForm").clone().empty();
+        //form.append(addAttrForm);
+
+        addAttrForm.append('<h3>Attributes adicionales</h3>');
+        /***++++ insertar Attributes adicionales */
+        function getInput(id, dt) {
+          var view;
+          //console.log(dt);
+          switch (dt) {
+            case 'number':
+              view = theme.find("#numberTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetNumber('" + id + "','" + dt + "')");
+              break;
+            case 'string':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
+            case 'boolean':
+              view = theme.find("#booleanTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetBoolean('" + id + "','" + dt + "')");
+              break;
+            case 'date':
+              view = theme.find("#dateTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
+              //view.find('input').attr("value",new Date())
+              break;
+          }
+          var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
+          eraseBtn.attr("attrId", id);
+          view.append(eraseBtn);
+          eraseBtn.on('click', function (args) {
+            var ide = eraseBtn.attr("attrId");
+            console.log("/*************************************************** " + ide);
+            scope.record.removeKeyAttr(ide);
+            scope.record.removeAttr(ide);
+            view.remove();
+            $compile(form)(scope);
+          });
+          return view;
+        }
+
+        var keys = scope.record.getAttrById("keys", "listOfObj");
+        if (keys && keys.length) {
+          keys.forEach(function (item) {
+            addAttrForm.append(getInput(item.id, item.string));
+          });
+        }
+
+        /***************************************** */
+
+        var addAttrSelector = theme.find("#addAttrSelector").clone();
+        var btnAddAttr = addAttrSelector.find("#btnAddAttr");
+
+        btnAddAttr.on('click', function (args) {
+          var attrId = addAttrSelector.find("input").val();
+          var attrDt = addAttrSelector.find("select").val();
+
+          if (attrId) {
+            var view = getInput(attrId, attrDt);
+            $compile(view)(scope);
+            //console.log(attrId +" -- "+attrDt)
+            addAttrForm.append(view);
+            //agregar a lista de keys
+            if (!scope.record.getAttrById("keys", "listOfObj")) {
+              scope.record.setAttrById("keys", "listOfObj", []);
+            }
+            var array = scope.record.getAttrById("keys", "listOfObj");
+            array.push({ id: attrId, string: attrDt });
+            scope.record.setAttrById("keys", "listOfObj", array);
+            addAttrSelector.find("input").val('');
+          }
+        });
+
+        //form.append(addAttrSelector);
+
+        /*********************save block******************** */
+        var saveBlock = theme.find('#saveBlock').clone();
+        saveBlock.find("button").on('click', function () {
+          scope.saveCb({ record: scope.record });
+        });
+        form.append(saveBlock);
+
+        /***************************************** */
+
+        form.append("{{record}}");
+        element.append(form);
+
+        $compile(form)(scope);
+      }); //end Then
+    }
+  };
+});
+//# sourceMappingURL=formInput.directive.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp').directive('formSaic', function ($compile, $log, SchemaObj) {
+  return {
+    templateUrl: 'app/directives/formSaic/formSaic.html',
+    restrict: 'EA',
+    scope: {
+      reg: "=",
+      saveCb: '&'
+    },
+    link: function link(scope, element, attrs) {
+      scope.reg.then(function (reg) {
+        scope.record = new SchemaObj(reg);
+        var theme = element.clone();
+        element.empty();
+        var form = theme.find("form").clone().empty();
+
+        var inputId = theme.find("#_id").clone();
+        var inputType = theme.find("#type").clone();
+        inputType.find("select").attr("disabled", "true");
+        var inputName = theme.find("#iname").clone();
+
+        form.append(inputId);
+        form.append(inputType);
+        form.append(inputName);
+
+        var attrForm = theme.find("#attributes").clone().empty();
+        attrForm.append('<h3>Attributes</h3>');
+
+        // en el caso del schema los attr fijos son name:string, attributes:list , keys: listOfObj
+        var attrName = theme.find("#attrName").clone();
+        attrForm.append(attrName);
+
+        var attrDesc = theme.find("#description").clone();
+        attrForm.append(attrDesc);
+
+        var attrSchema = theme.find("#attrSchema").clone();
+        attrForm.append(attrSchema);
+
+        var attrAttribute = theme.find("#attrAttribute").clone();
+        attrForm.append(attrAttribute);
+
+        var attrInput = theme.find("#attrInput").clone();
+        attrForm.append(attrInput);
+
+        form.append(attrForm);
+
+        /**************************************** */
+
+        var addAttrForm = theme.find("#addAttrForm").clone().empty();
+        form.append(addAttrForm);
+
+        addAttrForm.append('<h3>Attributes adicionales</h3>');
+        /***++++ insertar Attributes adicionales */
+        function getInput(id, dt) {
+          var view;
+          //console.log(dt);
+          switch (dt) {
+            case 'number':
+              view = theme.find("#numberTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetNumber('" + id + "','" + dt + "')");
+              break;
+            case 'string':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
+            case 'boolean':
+              view = theme.find("#booleanTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetBoolean('" + id + "','" + dt + "')");
+              break;
+            case 'date':
+              view = theme.find("#dateTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
+              //view.find('input').attr("value",new Date())
+              break;
+          }
+          var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
+          eraseBtn.attr("attrId", id);
+          view.append(eraseBtn);
+          eraseBtn.on('click', function (args) {
+            var ide = eraseBtn.attr("attrId");
+            console.log("/*************************************************** " + ide);
+            scope.record.removeKeyAttr(ide);
+            scope.record.removeAttr(ide);
+            view.remove();
+            $compile(form)(scope);
+          });
+          return view;
+        }
+
+        var keys = scope.record.getAttrById("keys", "listOfObj");
+        if (keys && keys.length) {
+          keys.forEach(function (item) {
+            addAttrForm.append(getInput(item.id, item.string));
+          });
+        }
+
+        /***************************************** */
+
+        var addAttrSelector = theme.find("#addAttrSelector").clone();
+        var btnAddAttr = addAttrSelector.find("#btnAddAttr");
+
+        btnAddAttr.on('click', function (args) {
+          var attrId = addAttrSelector.find("input").val();
+          var attrDt = addAttrSelector.find("select").val();
+
+          if (attrId) {
+            var view = getInput(attrId, attrDt);
+            $compile(view)(scope);
+            //console.log(attrId +" -- "+attrDt)
+            addAttrForm.append(view);
+            //agregar a lista de keys
+            if (!scope.record.getAttrById("keys", "listOfObj")) {
+              scope.record.setAttrById("keys", "listOfObj", []);
+            }
+            var array = scope.record.getAttrById("keys", "listOfObj");
+            array.push({ id: attrId, string: attrDt });
+            scope.record.setAttrById("keys", "listOfObj", array);
+            addAttrSelector.find("input").val('');
+          }
+        });
+        form.append(addAttrSelector);
+
+        /*********************save block******************** */
+        var saveBlock = theme.find('#saveBlock').clone();
+        saveBlock.find("button").on('click', function () {
+          scope.saveCb({ record: scope.record });
+        });
+        form.append(saveBlock);
+
+        /***************************************** */
+
+        form.append("{{record}}");
+        $compile(form)(scope);
+        element.append("<h1>Formulario SchemaAttrInputConf</h1>");
+        element.append(form);
+      });
+    }
+  };
+});
+//# sourceMappingURL=formSaic.directive.js.map
+
+'use strict';
+
+function SchemaObjService() {
+  function SchemaObj(r) {
+    angular.extend(this, r);
+  }
+  SchemaObj.prototype.find = function (array, key, value, target) {
+    var self = this;
+    if (!Array.isArray(array)) {
+      return null;
+    }
+
+    var index = array.map(function (x) {
+      return x[key];
+    }).indexOf(value);
+
+    if (index !== -1) {
+      if (target === undefined) {
+        return array[index];
+      } else {
+        return array[index][target];
+      }
+    } else {
+      return null;
+    }
+  };
+  SchemaObj.prototype.normalize = function () {
+    var from = "ÃÀÁÄÂÈÉËÊÌÍÏÎÒÓÖÔÙÚÜÛãàáäâèéëêìíïîòóöôùúüûÑñÇç",
+        to = "AAAAAEEEEIIIIOOOOUUUUaaaaaeeeeiiiioooouuuunncc",
+        mapping = {};
+
+    for (var i = 0, j = from.length; i < j; i++) {
+      mapping[from.charAt(i)] = to.charAt(i);
+    }return function (str) {
+      if (!str) {
+        return;
+      }
+      var ret = [];
+      for (var i = 0, j = str.length; i < j; i++) {
+        var c = str.charAt(i);
+        if (mapping.hasOwnProperty(str.charAt(i))) ret.push(mapping[c]);else ret.push(c);
+      }
+      return ret.join('').replace(/[^-A-Za-z0-9]+/g, '_').toLowerCase();
+    };
+  }();
+  SchemaObj.prototype.getAttrById = function (id, key) {
+    if (!this.attributes) {
+      return;
+    }
+
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf(id);
+    if (index !== -1) {
+      if (key) {
+        return this.attributes[index][key];
+      } else {
+        return this.attributes[index];
+      }
+    } else {
+      return;
+    }
+  };
+
+  SchemaObj.prototype.setAttrById = function (id, key, content) {
+    if (!this.attributes) {
+      this.attributes = [];
+    }
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf(id);
+    //console.log(index);
+    if (index !== -1) {
+      this.attributes[index][key] = content;
+      //return this.attributes[index];
+    } else {
+      var obj = {};
+      obj.id = id;
+      obj[key] = content;
+      this.attributes.push(obj);
+      //var length =
+      //return this.attributes[length-1];
+    }
+    return content;
+  };
+
+  SchemaObj.prototype.addKeyAttr = function (obj) {
+    if (!obj.id) {
+      console.log("El objeto no tiene la propiedad id");
+      return null;
+    }
+    var self = this;
+    if (!this.attributes) {
+      this.attributes = [];
+    }
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf("keys");
+    //console.log(index);
+    if (index !== -1) {
+      if (Array.isArray(self.attributes[index]["listOfObj"])) {
+        var i = self.attributes[index]["listOfObj"].map(function (x) {
+          return x.id;
+        }).indexOf(obj.id);
+        if (i === -1) {
+          self.attributes[index]["listOfObj"].push(obj);
+        } else {
+          console.log("el attributo ingresado ya esta registrado");
+          return null;
+        }
+      } else {
+        self.attributes[index]["listOfObj"] = [obj];
+      }
+    } else {
+      var obj = {};
+      obj.id = "keys";
+      obj["listOfObj"] = [obj];
+      this.attributes.push(obj);
+    }
+  };
+  SchemaObj.prototype.removeKeyAttr = function (id) {
+    if (!id) {
+      console.log("El objeto no tiene la propiedad id");
+      return null;
+    }
+    var self = this;
+    if (!this.attributes) {
+      this.attributes = [];
+    }
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf("keys");
+
+    if (index !== -1) {
+      if (Array.isArray(self.attributes[index]["listOfObj"]) && self.attributes[index]["listOfObj"].length) {
+
+        var i = self.attributes[index]["listOfObj"].map(function (x) {
+          return x.id;
+        }).indexOf(id);
+
+        if (i !== -1) {
+          console.log(index + " ------------------ " + i);
+          console.log(self.attributes[index]["listOfObj"]);
+          self.attributes[index]["listOfObj"].splice(i, 1);
+        }
+      }
+    }
+  };
+  SchemaObj.prototype.addAttrLOO = function (id, key, value) {
+    if (!id) {
+      console.log("El objeto no tiene la propiedad id");
+      return null;
+    }
+    var self = this;
+    if (!this.attributes) {
+      this.attributes = [];
+    }
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf(id);
+
+    if (index !== -1) {
+      if (Array.isArray(self.attributes[index]["listOfObj"])) {
+        var i = self.attributes[index]["listOfObj"].map(function (x) {
+          return x.id;
+        }).indexOf(key);
+        if (i === -1) {
+          self.attributes[index]["listOfObj"].push({ id: key, string: value });
+        } else {
+          console.log("el attributo ingresado ya esta registrado");
+          return null;
+        }
+      } else {
+        self.attributes[index]["listOfObj"] = [obj];
+      }
+    } else {
+      this.attributes.push({ id: key, string: value });
+    }
+    return true;
+  };
+  SchemaObj.prototype.removeAttrLOO = function (id, key) {
+    if (!id) {
+      console.log("El objeto no tiene la propiedad id");
+      return null;
+    }
+    var self = this;
+    if (!this.attributes) {
+      this.attributes = [];
+    }
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf(id);
+
+    if (index !== -1) {
+      if (Array.isArray(self.attributes[index]["listOfObj"]) && self.attributes[index]["listOfObj"].length) {
+
+        var i = self.attributes[index]["listOfObj"].map(function (x) {
+          return x.id;
+        }).indexOf(key);
+
+        if (i !== -1) {
+          //console.log(index+" ------------------ "+i);
+          //console.log(self.attributes[index]["listOfObj"]);
+          self.attributes[index]["listOfObj"].splice(i, 1);
+        }
+      }
+    }
+  };
+  SchemaObj.prototype.removeAttr = function (id) {
+    if (!id) {
+      console.log("El objeto no tiene la propiedad id");
+      return null;
+    }
+    var self = this;
+    if (!this.attributes) {
+      this.attributes = [];
+    }
+    var index = this.attributes.map(function (a) {
+      return a.id;
+    }).indexOf(id);
+
+    if (index !== -1) {
+      this.attributes.splice(index, 1);
+    }
+  };
+  //getter setter de primer nivel del objeto (no array)
+  SchemaObj.prototype.getsetFLString = function (key) {
+    var self = this;
+    return function (newName) {
+      if (angular.isDefined(newName)) {
+        self[key] = newVal;
+      }
+
+      return self[key];
+    };
+  };
+
+  SchemaObj.prototype.getsetOptionList = function (id, key) {
+    var self = this;
+    return function (newName) {
+      if (arguments.length) {
+        self.setAttrById(id, key, newName.replace(',,', ',').split(',').map(function (a) {
+          return a.trim();
+        }));
+      }
+
+      return self.getAttrById(id, key);
+    };
+  };
+  SchemaObj.prototype.getsetFlat = function (id, key) {
+    var self = this;
+    return function (newVal) {
+      if (arguments.length) {
+        newVal = self.normalize(newVal);
+        self.setAttrById(id, key, newVal);
+        self.getAttrById(id, key);
+      } else {
+        return self.getAttrById(id, key);
+      }
+    };
+  };
+  SchemaObj.prototype.getsetFlatNameReplica = function () {
+    var self = this;
+    return function (newVal) {
+      if (arguments.length) {
+        newVal = self.normalize(newVal);
+        self.setAttrById("name", "string", newVal);
+        self.name = newVal;
+      } else {
+        return self.getAttrById("name", "string");
+      }
+    };
+  };
+  SchemaObj.prototype.getsetString = function (id, key) {
+    var self = this;
+    return function (newVal) {
+      if (arguments.length && id && key && newVal) {
+        self.setAttrById(id, key, newVal);
+      }
+      return self.getAttrById(id, key);
+    };
+  };
+  SchemaObj.prototype.getsetSelect = function (id, key) {
+    var self = this;
+    return function (newVal) {
+      return angular.isDefined(newVal) ? self.setAttrById(id, key, newVal) : self.getAttrById(id, key);
+    };
+  };
+  SchemaObj.prototype.getsetNumber = function (id, key) {
+    var self = this;
+    return function (newVal) {
+      if (arguments.length && id && key && newVal) {
+        if (typeof newVal === 'number') {
+          self.setAttrById(id, key, newVal);
+        }
+      }
+      return self.getAttrById(id, key);
+    };
+  };
+  SchemaObj.prototype.getsetBooleanNumeric = function (id, key) {
+
+    var self = this;
+    return function (newVal) {
+      //console.log(typeof newVal)
+      if (arguments.length && id && key) {
+        if (newVal === 0 || newVal === 1) {
+          if (newVal) {
+            self.setAttrById(id, key, true);
+          } else {
+            self.setAttrById(id, key, false);
+          }
+        }
+      }
+      return self.getAttrById(id, key) ? 1 : 0;
+    };
+  };
+  SchemaObj.prototype.getsetBoolean = function (id, key) {
+
+    var self = this;
+    return function (newVal) {
+      //console.log(typeof newVal)
+      if (arguments.length && id && key) {
+        if (newVal === true) {
+          self.setAttrById(id, key, true);
+        }
+        if (newVal === false) {
+          self.setAttrById(id, key, false);
+        }
+      }
+      return self.getAttrById(id, key);
+    };
+  };
+  SchemaObj.prototype.getsetDate = function (id, key) {
+    var self = this;
+    return function (newVal) {
+
+      if (angular.isDefined(newVal)) {
+        //console.log("newVal.getDate(): " +newVal.getDate() + " -  Valor newVal: "+newVal)
+        self.setAttrById(id, key, newVal);
+        //newVal = new Date( self.getAttrById(id,key) );
+      }
+
+      return new Date(self.getAttrById(id, key));
+      //console.log(  Date.parse( newVal ) === Date.parse( self.getAttrById(id,key) )     );
+      //if( !Date.parse( new Date(newVal) ) === Date.parse( self.getAttrById(id,key) )){
+      /*
+      if(Date.parse( newVal ) === Date.parse( self.getAttrById(id,key) )){
+        return newVal;
+      }else{
+        if(arguments.length && id && key && newVal && newVal instanceof Date){
+          //console.log("newVal.getDate(): " +newVal.getDate() + " -  Valor newVal: "+newVal)
+          self.setAttrById(id,key,newVal.toISOString());
+        }
+        return new Date( self.getAttrById(id,key) )
+      }
+      */
+    };
+  };
+
+  return SchemaObj;
+}
+
+angular.module('pmgRestfulApiApp').factory('SchemaObj', SchemaObjService);
+//# sourceMappingURL=SchemaObj.service.js.map
+
+'use strict';
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -316,6 +1604,649 @@ angular.module('pmgRestfulApiApp').config(function ($stateProvider) {
   });
 });
 //# sourceMappingURL=main.js.map
+
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+(function () {
+    var SchemasComponent = function () {
+        function SchemasComponent($http, $scope, socket) {
+            _classCallCheck(this, SchemasComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+        }
+
+        _createClass(SchemasComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var _this = this;
+
+                this.$http.get('api/schemas').then(function (response) {
+                    console.log(response.data);
+                    _this.items = response.data.items;
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                });
+                this.typeFilter = function (idType) {
+                    return function (item) {
+                        return item.type === idType;
+                    };
+                };
+            }
+        }, {
+            key: 'find',
+            value: function find(array, key, value, target) {
+                var self = this;
+                if (!Array.isArray(array)) {
+                    return null;
+                }
+
+                var index = array.map(function (x) {
+                    return x[key];
+                }).indexOf(value);
+
+                if (index !== -1) {
+                    if (target === undefined) {
+                        return array[index];
+                    } else {
+                        return array[index][target];
+                    }
+                } else {
+                    return null;
+                }
+            }
+        }]);
+
+        return SchemasComponent;
+    }();
+
+    var SchemaTypeComponent = function () {
+        function SchemaTypeComponent($http, $scope, socket, $stateParams) {
+            _classCallCheck(this, SchemaTypeComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.type = $stateParams.type;
+            console.log(this.$stateParams);
+        }
+
+        _createClass(SchemaTypeComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var _this2 = this;
+
+                this.$http.get('api/schemas?type=' + this.type) //record_only
+                .then(function (response) {
+                    console.log(response.data);
+                    _this2.items = response.data.items;
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                });
+            }
+        }, {
+            key: 'find',
+            value: function find(array, key, value, target) {
+                var self = this;
+                if (!Array.isArray(array)) {
+                    return null;
+                }
+
+                var index = array.map(function (x) {
+                    return x[key];
+                }).indexOf(value);
+
+                if (index !== -1) {
+                    if (target === undefined) {
+                        return array[index];
+                    } else {
+                        return array[index][target];
+                    }
+                } else {
+                    return null;
+                }
+            }
+        }]);
+
+        return SchemaTypeComponent;
+    }();
+
+    var SchemaEditComponent = function () {
+        function SchemaEditComponent($http, $scope, socket, $stateParams) {
+            _classCallCheck(this, SchemaEditComponent);
+
+            this.$http = $http;
+            this.http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.id = $stateParams.id;
+            this.record = {};
+            console.log("this.$stateParams:  " + this.$stateParams);
+        }
+
+        _createClass(SchemaEditComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                console.log(this.http.put);
+                this.response = this.$http.get('api/schemas/' + this.id + '?record_only=true') //record_only
+                .then(function (response) {
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                    self.record = response.data;
+                    return self.record;
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                var self = this;
+                //console.log("Saving .............................................")
+                //console.log("passing record")
+                //console.log(record)
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                }
+            }
+        }]);
+
+        return SchemaEditComponent;
+    }();
+
+    var SchemaNewComponent = function () {
+        function SchemaNewComponent($http, $scope, socket, $stateParams, $q) {
+            _classCallCheck(this, SchemaNewComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.q = $q;
+            this.id = $stateParams.id;
+            console.log("this.$stateParams:  " + this.$stateParams);
+        }
+
+        _createClass(SchemaNewComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                this.response = this.q(function (resolve, reject) {
+                    self.record = { type: "schema " };
+                    resolve(self.record);
+                    reject(self.record);
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                } else {
+                    this.$http.post('api/schemas', record).then(function (x) {
+                        console.log(x);
+                    });
+                }
+                //redireccionar
+            }
+        }]);
+
+        return SchemaNewComponent;
+    }();
+
+    var SchemaAttrEditComponent = function () {
+        function SchemaAttrEditComponent($http, $scope, socket, $stateParams) {
+            _classCallCheck(this, SchemaAttrEditComponent);
+
+            this.$http = $http;
+            this.http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.id = $stateParams.id;
+            this.record = {};
+            console.log("this.$stateParams:  " + this.$stateParams);
+        }
+
+        _createClass(SchemaAttrEditComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                console.log(this.http.put);
+                this.response = this.$http.get('api/schemas/' + this.id + '?record_only=true') //record_only
+                .then(function (response) {
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                    self.record = response.data;
+                    return self.record;
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                var self = this;
+                //console.log("Saving .............................................")
+                //console.log("passing record")
+                //console.log(record)
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                }
+            }
+        }]);
+
+        return SchemaAttrEditComponent;
+    }();
+
+    var SchemaAttrNewComponent = function () {
+        function SchemaAttrNewComponent($http, $scope, socket, $stateParams, $q) {
+            _classCallCheck(this, SchemaAttrNewComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.q = $q;
+            this.id = $stateParams.id;
+            console.log("this.$stateParams:  " + this.$stateParams);
+        }
+
+        _createClass(SchemaAttrNewComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                this.response = this.q(function (resolve, reject) {
+                    self.record = { type: "attribute" };
+                    resolve(self.record);
+                    reject(self.record);
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                } else {
+                    this.$http.post('api/schemas', record).then(function (x) {
+                        console.log(x);
+                    });
+                }
+                //redireccionar
+            }
+        }]);
+
+        return SchemaAttrNewComponent;
+    }();
+
+    var SchemaInputEditComponent = function () {
+        function SchemaInputEditComponent($http, $scope, socket, $stateParams) {
+            _classCallCheck(this, SchemaInputEditComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.id = $stateParams.id;
+            console.log("this.$stateParams:  " + $stateParams.id);
+        }
+
+        _createClass(SchemaInputEditComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                this.response = this.$http.get('api/schemas/' + this.id + '?record_only=true') //record_only
+                .then(function (response) {
+                    console.log(response.data);
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                    return response.data;
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                }
+            }
+        }]);
+
+        return SchemaInputEditComponent;
+    }();
+
+    var SchemaInputNewComponent = function () {
+        function SchemaInputNewComponent($http, $scope, socket, $stateParams, $q) {
+            _classCallCheck(this, SchemaInputNewComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.q = $q;
+            this.id = $stateParams.id;
+            console.log("SchemaInputNewComponent");
+        }
+
+        _createClass(SchemaInputNewComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                this.response = this.q(function (resolve, reject) {
+                    self.record = { type: "input" };
+                    resolve(self.record);
+                    reject(self.record);
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                } else {
+                    this.$http.post('api/schemas', record).then(function (x) {
+                        console.log(x);
+                    });
+                }
+                //redireccionar
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                } else {
+                    this.$http.post('api/schemas', record).then(function (x) {
+                        console.log(x);
+                    });
+                }
+                //redireccionar
+            }
+        }]);
+
+        return SchemaInputNewComponent;
+    }();
+
+    var SchemaAttrInputEditComponent = function () {
+        function SchemaAttrInputEditComponent($http, $scope, socket, $stateParams) {
+            _classCallCheck(this, SchemaAttrInputEditComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.id = $stateParams.id;
+            console.log("this.$stateParams:  " + this.$stateParams);
+        }
+
+        _createClass(SchemaAttrInputEditComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                this.response = this.$http.get('api/schemas/' + this.id + '?record_only=true') //record_only
+                .then(function (response) {
+                    //console.log(response.data);
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                    return response.data;
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                }
+            }
+        }]);
+
+        return SchemaAttrInputEditComponent;
+    }();
+
+    var SchemaAttrInputNewComponent = function () {
+        function SchemaAttrInputNewComponent($http, $scope, socket, $stateParams, $q) {
+            _classCallCheck(this, SchemaAttrInputNewComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.q = $q;
+            this.id = $stateParams.id;
+            console.log("SchemaInputNewComponent");
+        }
+
+        _createClass(SchemaAttrInputNewComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                this.response = this.q(function (resolve, reject) {
+                    self.record = { type: "attrInputConf" };
+                    resolve(self.record);
+                    reject(self.record);
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                } else {
+                    this.$http.post('api/schemas', record).then(function (x) {
+                        console.log(x);
+                    });
+                }
+                //redireccionar
+            }
+        }]);
+
+        return SchemaAttrInputNewComponent;
+    }();
+
+    var schemaSchmAttrInputEdit = function () {
+        function schemaSchmAttrInputEdit($http, $scope, socket, $stateParams) {
+            _classCallCheck(this, schemaSchmAttrInputEdit);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.id = $stateParams.id;
+            console.log("this.$stateParams:  " + this.$stateParams);
+        }
+
+        _createClass(schemaSchmAttrInputEdit, [{
+            key: '$onInit',
+            value: function $onInit() {
+                this.response = this.$http.get('api/schemas/' + this.id + '?record_only=true') //record_only
+                .then(function (response) {
+                    //console.log(response.data);
+                    //this.socket.syncUpdates('thing', this.awesomeThings);
+                    return response.data;
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                }
+            }
+        }]);
+
+        return schemaSchmAttrInputEdit;
+    }();
+
+    var SchemaSchmAttrInputNewComponent = function () {
+        function SchemaSchmAttrInputNewComponent($http, $scope, socket, $stateParams, $q) {
+            _classCallCheck(this, SchemaSchmAttrInputNewComponent);
+
+            this.$http = $http;
+            this.socket = socket;
+            this.items = [];
+            this.q = $q;
+            this.id = $stateParams.id;
+            console.log("SchemaInputNewComponent");
+        }
+
+        _createClass(SchemaSchmAttrInputNewComponent, [{
+            key: '$onInit',
+            value: function $onInit() {
+                var self = this;
+                this.response = this.q(function (resolve, reject) {
+                    self.record = { type: "schmAttrInputConf" };
+                    resolve(self.record);
+                    reject(self.record);
+                });
+            }
+        }, {
+            key: 'saveRecord',
+            value: function saveRecord(record) {
+                if (record._id) {
+                    this.$http.put('api/schemas/' + record._id, record).then(function (x) {
+                        console.log(x);
+                        //self.record = x.data;
+                    });
+                } else {
+                    this.$http.post('api/schemas', record).then(function (x) {
+                        console.log(x);
+                    });
+                }
+                //redireccionar
+            }
+        }]);
+
+        return SchemaSchmAttrInputNewComponent;
+    }();
+
+    angular.module('pmgRestfulApiApp').component('schemas', {
+        templateUrl: 'app/schemas/schemas.html',
+        controller: SchemasComponent,
+        controllerAs: 'schmCtrl'
+    }).component('schemaEdit', {
+        template: '<h1>Schema Edit</h1><form-builder reg="seCtrl.response" save-cb="seCtrl.saveRecord(record)" ></form-builder>',
+        controller: SchemaEditComponent,
+        controllerAs: 'seCtrl'
+    }).component('schemaNew', {
+        template: '<h1>Schema Edit</h1><form-builder reg="senCtrl.response" save-cb="senCtrl.saveRecord(record)" ></form-builder>',
+        controller: SchemaNewComponent,
+        controllerAs: 'senCtrl'
+    }).component('schemaAttrEdit', {
+        template: '<h1>Attribute Edit</h1><form-attr reg="saeCtrl.response" save-cb="saeCtrl.saveRecord(record)" ></form-attr>',
+        controller: SchemaAttrEditComponent,
+        controllerAs: 'saeCtrl'
+    }).component('schemaAttrNew', {
+        template: '<h1>Attribute Edit</h1><form-attr reg="saenCtrl.response" save-cb="saenCtrl.saveRecord(record)" ></form-attr>',
+        controller: SchemaAttrNewComponent,
+        controllerAs: 'saenCtrl'
+    }).component('schemaInputEdit', {
+        template: '<h1>Input Edit</h1><form-input reg="sieCtrl.response" save-cb="sieCtrl.saveRecord(record)"></form-input>',
+        controller: SchemaInputEditComponent,
+        controllerAs: 'sieCtrl'
+    }).component('schemaInputNew', {
+        template: '<h1>Input New</h1><form-input reg="sienCtrl.response" save-cb="sienCtrl.saveRecord(record)"></form-input>',
+        controller: SchemaInputNewComponent,
+        controllerAs: 'sienCtrl'
+    }).component('schemaAttrInputEdit', {
+        //templateUrl: 'app/schemas/schema-edit.html',
+        template: '<h1>Attribute-Input Edit</h1><form-aic reg="aicCtrl.response" save-cb="aicCtrl.saveRecord(record)"></form-aic>',
+        controller: SchemaAttrInputEditComponent,
+        controllerAs: 'aicCtrl'
+    }).component('schemaAttrInputNew', {
+        //templateUrl: 'app/schemas/schema-edit.html',
+        template: '<h1>Attribute-Input New</h1><form-aic reg="aicnCtrl.response" save-cb="aicnCtrl.saveRecord(record)"></form-aic>',
+        controller: SchemaAttrInputNewComponent,
+        controllerAs: 'aicnCtrl'
+    }).component('schemaSchmAttrInputEdit', {
+        template: '<form-saic reg="saicCtrl.response" save-cb="saicCtrl.saveRecord(record)"></form-saic>',
+        controller: schemaSchmAttrInputEdit,
+        controllerAs: 'saicCtrl'
+    }).component('schemaSchmAttrInputNew', {
+        template: '<form-saic reg="saicnCtrl.response" save-cb="saicnCtrl.saveRecord(record)"></form-saic>',
+        controller: SchemaSchmAttrInputNewComponent,
+        controllerAs: 'saicnCtrl'
+    }).component('schemaType', {
+        templateUrl: 'app/schemas/schemas.html',
+        controller: SchemaTypeComponent,
+        controllerAs: 'schmCtrl'
+    });
+})();
+//# sourceMappingURL=schemas.controller.js.map
+
+'use strict';
+
+angular.module('pmgRestfulApiApp').config(function ($stateProvider) {
+  $stateProvider.state('schemas', {
+    url: '/schemas',
+    template: '<schemas></schemas>'
+  }).state('schemaType', {
+    url: '/schemas/type/:type',
+    template: '<schema-type></schema-type>'
+  })
+
+  /**************SCHEMA************ */
+  .state('schemaEdit', {
+    url: '/schemas/schema/:id/edit',
+    template: '<schema-edit></schema-edit>'
+  }).state('schemaNew', {
+    url: '/schemas/schema/new',
+    template: '<schema-new></schema-new>'
+  })
+
+  /**************INPUT************ */
+  .state('schemaInputEdit', {
+    url: '/schemas/input/:id/edit',
+    template: '<schema-input-edit></schema-input-edit>'
+  }).state('schemaInputNew', {
+    url: '/schemas/input/new',
+    template: '<schema-input-new></schema-input-new>'
+  })
+
+  /**************ATTRIBUTE************ */
+  .state('schemaAttrEdit', {
+    url: '/schemas/attribute/:id/edit',
+    template: '<schema-attr-edit></schema-attr-edit>'
+  }).state('schemaAttrNew', {
+    url: '/schemas/attribute/new',
+    template: '<schema-attr-new></schema-attr-new>'
+  })
+
+  /**************ATTRIBUTE INPUTE ************ */
+
+  .state('schemaAttrInputEdit', {
+    url: '/schemas/attrInputConf/:id/edit',
+    template: '<schema-attr-input-edit></schema-attr-input-edit>'
+  }).state('schemaAttrInputNew', {
+    url: '/schemas/attrInputConf/new',
+    template: '<schema-attr-input-new></schema-attr-input-new>'
+  })
+
+  /**************SCHEMA ATTRIBUTE INPUTE ************ */
+  .state('schemaSchmAttrInputEdit', {
+    url: '/schemas/schmAttrInputConf/:id/edit',
+    template: '<schema-schm-attr-input-edit></schema-schm-attr-input-edit>'
+  }).state('schemaSchmAttrInputNew', {
+    url: '/schemas/schmAttrInputConf/new',
+    template: '<schema-schm-attr-input-new></schema-schm-attr-input-new>'
+  });
+});
+//# sourceMappingURL=schemas.js.map
 
 'use strict';
 
@@ -923,11 +2854,18 @@ angular.module('pmgRestfulApiApp').factory('socket', function (socketFactory) {
 //# sourceMappingURL=util.service.js.map
 
 angular.module("pmgRestfulApiApp").run(["$templateCache", function($templateCache) {$templateCache.put("app/admin/admin.html","<div class=\"container\">\n  <p>The delete user and user index api routes are restricted to users with the \'admin\' role.</p>\n  <ul class=\"list-group user-list\">\n    <li class=\"list-group-item\" ng-repeat=\"user in admin.users\">\n	    <div class=\"user-info\">\n	        <strong>{{user.name}}</strong><br>\n	        <span class=\"text-muted\">{{user.email}}</span>\n	    </div>\n        <a ng-click=\"admin.delete(user)\" class=\"trash\"><span class=\"fa fa-trash fa-2x\"></span></a>\n    </li>\n  </ul>\n</div>\n");
-$templateCache.put("app/main/main.html","<header class=\"hero-unit\" id=\"banner\">\n  <div class=\"container\">\n    <h1>\'Allo, \'Allo!</h1>\n    <p class=\"lead\">Kick-start your next web app with Angular Fullstack</p>\n    <img src=\"assets/images/yeoman-462ccecbb1.png\" alt=\"I\'m Yeoman\">\n  </div>\n</header>\n\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-lg-12\">\n      <h1 class=\"page-header\">Features:</h1>\n      <ul class=\"nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6\" ng-repeat=\"thing in $ctrl.awesomeThings\">\n        <li><a href=\"#\" uib-tooltip=\"{{thing.info}}\">{{thing.name}}<button type=\"button\" class=\"close\" ng-click=\"$ctrl.deleteThing(thing)\">&times;</button></a></li>\n      </ul>\n    </div>\n  </div>\n\n  <form class=\"thing-form\">\n    <label>Syncs in realtime across clients</label>\n    <p class=\"input-group\">\n      <input type=\"text\" class=\"form-control\" placeholder=\"Add a new thing here.\" ng-model=\"$ctrl.newThing\">\n      <span class=\"input-group-btn\">\n        <button type=\"submit\" class=\"btn btn-primary\" ng-click=\"$ctrl.addThing()\">Add New</button>\n      </span>\n    </p>\n  </form>\n</div>\n");
-$templateCache.put("components/footer/footer.html","<div class=\"container\">\n  <p>Angular Fullstack v3.7.6 |\n    <a href=\"https://twitter.com/tyhenkel\">@tyhenkel</a> |\n    <a href=\"https://github.com/DaftMonk/generator-angular-fullstack/issues?state=open\">Issues</a>\n  </p>\n</div>\n");
+$templateCache.put("app/main/main.html","<header class=\"hero-unit\" id=\"banner\">\n  <div class=\"container\">\n    <h1>\'Allo, \'Allo!</h1>\n    <p class=\"lead\">Kick-start your next web app with Angular Fullstack</p>\n    <img src=\"assets/images/yeoman-462ccecbb1.png\" alt=\"I\'m Yeoman\">\n  </div>\n</header>\n\n<div class=\"container\">\n  <!--\n  <div class=\"row\">\n    <div class=\"col-lg-12\">\n      <h1 class=\"page-header\">Features:</h1>\n      <ul class=\"nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6\" ng-repeat=\"thing in $ctrl.awesomeThings\">\n        <li><a href=\"#\" uib-tooltip=\"{{thing.info}}\">{{thing.name}}<button type=\"button\" class=\"close\" ng-click=\"$ctrl.deleteThing(thing)\">&times;</button></a></li>\n      </ul>\n    </div>\n  </div>\n\n  <form class=\"thing-form\">\n    <label>Syncs in realtime across clients</label>\n    <p class=\"input-group\">\n      <input type=\"text\" class=\"form-control\" placeholder=\"Add a new thing here.\" ng-model=\"$ctrl.newThing\">\n      <span class=\"input-group-btn\">\n        <button type=\"submit\" class=\"btn btn-primary\" ng-click=\"$ctrl.addThing()\">Add New</button>\n      </span>\n    </p>\n  </form>\n-->\n</div>\n");
+$templateCache.put("app/schemas/schema-edit.html","<form-builder reg=\"seCtrl.response\"></form-builder>");
+$templateCache.put("app/schemas/schemas.html","<div class=\"col-md-12\">\n  <h1>Schemas disponibles</h1>\n   <uib-tabset active=\"active\">\n    <uib-tab index=\"0\" heading=\"SCHEMAS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'schema\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/schema/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"1\" heading=\"ATTRIBUTES\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'attribute\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/attribute/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"2\" heading=\"INPUTS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'input\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/input/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"3\" heading=\"ATTRIBUTES-INPUTS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'attrInputConf\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/attrInputConf/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"4\" heading=\"SCHEMA-ATTRIBUTES-INPUTS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'schmAttrInputConf\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/schmAttrInputConf/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"0\" heading=\"ALL\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n    </uib-tab>\n    <uib-tab index=\"4\" heading=\"RAW\">\n      <pre>\n        {{schmCtrl}}\n      </pre>\n      \n    </uib-tab>\n\n\n\n\n  </uib-tabset>\n</div>");
+$templateCache.put("components/footer/footer.html","<div class=\"container\">\n  <p> PMGV - INIA La Platina -  2016\n  </p>\n</div>\n");
 $templateCache.put("components/modal/modal.html","<div class=\"modal-header\">\n  <button ng-if=\"modal.dismissable\" type=\"button\" ng-click=\"$dismiss()\" class=\"close\">&times;</button>\n  <h4 ng-if=\"modal.title\" ng-bind=\"modal.title\" class=\"modal-title\"></h4>\n</div>\n<div class=\"modal-body\">\n  <p ng-if=\"modal.text\" ng-bind=\"modal.text\"></p>\n  <div ng-if=\"modal.html\" ng-bind-html=\"modal.html\"></div>\n</div>\n<div class=\"modal-footer\">\n  <button ng-repeat=\"button in modal.buttons\" ng-class=\"button.classes\" ng-click=\"button.click($event)\" ng-bind=\"button.text\" class=\"btn\"></button>\n</div>\n");
 $templateCache.put("components/navbar/navbar.html","<div class=\"navbar navbar-default navbar-static-top\" ng-controller=\"NavbarController\">\n  <div class=\"container\">\n    <div class=\"navbar-header\">\n      <button class=\"navbar-toggle\" type=\"button\" ng-click=\"nav.isCollapsed = !nav.isCollapsed\">\n        <span class=\"sr-only\">Toggle navigation</span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n      </button>\n      <a href=\"/\" class=\"navbar-brand\">pmg-restful-api</a>\n    </div>\n    <div uib-collapse=\"nav.isCollapsed\" class=\"navbar-collapse collapse\" id=\"navbar-main\">\n      <ul class=\"nav navbar-nav\">\n        <li ng-repeat=\"item in nav.menu\" ui-sref-active=\"active\">\n            <a ui-sref=\"{{item.state}}\">{{item.title}}</a>\n        </li>\n        <li ng-show=\"nav.isAdmin()\" ui-sref-active=\"active\"><a ui-sref=\"admin\">Admin</a></li>\n      </ul>\n\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-hide=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"signup\">Sign up</a></li>\n        <li ng-hide=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"login\">Login</a></li>\n        <li ng-show=\"nav.isLoggedIn()\"><p class=\"navbar-text\">Hello {{ nav.getCurrentUser().name }}</p> </li>\n        <li ng-show=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"settings\"><span class=\"glyphicon glyphicon-cog\"></span></a></li>\n        <li ng-show=\"nav.isLoggedIn()\"><a ui-sref=\"logout\">Logout</a></li>\n      </ul>\n    </div>\n  </div>\n</div>\n");
 $templateCache.put("components/oauth-buttons/oauth-buttons.html","<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'facebook\')\" class=\"btn btn-social btn-facebook\">\n  <i class=\"fa fa-facebook\"></i>\n  Connect with Facebook\n</a>\n<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'google\')\" class=\"btn btn-social btn-google\">\n  <i class=\"fa fa-google-plus\"></i>\n  Connect with Google+\n</a>\n<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'twitter\')\" class=\"btn btn-social btn-twitter\">\n  <i class=\"fa fa-twitter\"></i>\n  Connect with Twitter\n</a>\n");
 $templateCache.put("app/account/login/login.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Login</h1>\n      <p>Accounts are reset on server restart from <code>server/config/seed.js</code>. Default account is <code>test@example.com</code> / <code>test</code></p>\n      <p>Admin account is <code>admin@example.com</code> / <code>admin</code></p>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.login(form)\" novalidate>\n\n        <div class=\"form-group\">\n          <label>Email</label>\n\n          <input type=\"email\" name=\"email\" class=\"form-control\" ng-model=\"vm.user.email\" required>\n        </div>\n\n        <div class=\"form-group\">\n          <label>Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.password\" required>\n        </div>\n\n        <div class=\"form-group has-error\">\n          <p class=\"help-block\" ng-show=\"form.email.$error.required && form.password.$error.required && vm.submitted\">\n             Please enter your email and password.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.email && vm.submitted\">\n             Please enter a valid email.\n          </p>\n\n          <p class=\"help-block\">{{ vm.errors.other }}</p>\n        </div>\n\n        <div>\n          <button class=\"btn btn-inverse btn-lg btn-login\" type=\"submit\">\n            Login\n          </button>\n          <a class=\"btn btn-default btn-lg btn-register\" ui-sref=\"signup\">\n            Register\n          </a>\n        </div>\n\n        <hr/>\n        <div class=\"row\">\n          <div class=\"col-sm-4 col-md-3\">\n            <oauth-buttons classes=\"btn-block\"></oauth-buttons>\n          </div>\n        </div>\n      </form>\n    </div>\n  </div>\n  <hr>\n</div>\n");
 $templateCache.put("app/account/settings/settings.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Change Password</h1>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.changePassword(form)\" novalidate>\n\n        <div class=\"form-group\">\n          <label>Current Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.oldPassword\"\n                 mongoose-error/>\n          <p class=\"help-block\" ng-show=\"form.password.$error.mongoose\">\n              {{ vm.errors.other }}\n          </p>\n        </div>\n\n        <div class=\"form-group\">\n          <label>New Password</label>\n\n          <input type=\"password\" name=\"newPassword\" class=\"form-control\" ng-model=\"vm.user.newPassword\"\n                 ng-minlength=\"3\"\n                 required/>\n          <p class=\"help-block\"\n             ng-show=\"(form.newPassword.$error.minlength || form.newPassword.$error.required) && (form.newPassword.$dirty || vm.submitted)\">\n            Password must be at least 3 characters.\n          </p>\n        </div>\n\n        <div class=\"form-group\">\n          <label>Confirm New Password</label>\n\n          <input type=\"password\" name=\"confirmPassword\" class=\"form-control\" ng-model=\"vm.user.confirmPassword\"\n                 match=\"vm.user.newPassword\"\n                 ng-minlength=\"3\"\n                 required=\"\"/>\n          <p class=\"help-block\"\n             ng-show=\"form.confirmPassword.$error.match && vm.submitted\">\n            Passwords must match.\n          </p>\n\n        </div>\n\n        <p class=\"help-block\"> {{ vm.message }} </p>\n\n        <button class=\"btn btn-lg btn-primary\" type=\"submit\">Save changes</button>\n      </form>\n    </div>\n  </div>\n</div>\n");
-$templateCache.put("app/account/signup/signup.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Sign up</h1>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.register(form)\" novalidate>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.name.$valid && vm.submitted,\n                                            \'has-error\': form.name.$invalid && vm.submitted }\">\n          <label>Name</label>\n\n          <input type=\"text\" name=\"name\" class=\"form-control\" ng-model=\"vm.user.name\"\n                 required/>\n          <p class=\"help-block\" ng-show=\"form.name.$error.required && vm.submitted\">\n            A name is required\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.email.$valid && vm.submitted,\n                                            \'has-error\': form.email.$invalid && vm.submitted }\">\n          <label>Email</label>\n\n          <input type=\"email\" name=\"email\" class=\"form-control\" ng-model=\"vm.user.email\"\n                 required\n                 mongoose-error/>\n          <p class=\"help-block\" ng-show=\"form.email.$error.email && vm.submitted\">\n            Doesn\'t look like a valid email.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.required && vm.submitted\">\n            What\'s your email address?\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.mongoose\">\n            {{ vm.errors.email }}\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.password.$valid && vm.submitted,\n                                            \'has-error\': form.password.$invalid && vm.submitted }\">\n          <label>Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.password\"\n                 ng-minlength=\"3\"\n                 required\n                 mongoose-error/>\n          <p class=\"help-block\"\n             ng-show=\"(form.password.$error.minlength || form.password.$error.required) && vm.submitted\">\n            Password must be at least 3 characters.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.password.$error.mongoose\">\n            {{ vm.errors.password }}\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.confirmPassword.$valid && vm.submitted,\n                                            \'has-error\': form.confirmPassword.$invalid && vm.submitted }\">\n          <label>Confirm Password</label>\n          <input type=\"password\" name=\"confirmPassword\" class=\"form-control\" ng-model=\"vm.user.confirmPassword\"\n                 match=\"vm.user.password\"\n                 ng-minlength=\"3\" required/>\n          <p class=\"help-block\"\n             ng-show=\"form.confirmPassword.$error.match && vm.submitted\">\n            Passwords must match.\n          </p>\n        </div>\n\n        <div>\n          <button class=\"btn btn-inverse btn-lg btn-register\" type=\"submit\">\n            Sign up\n          </button>\n          <a class=\"btn btn-default btn-lg btn-login\" ui-sref=\"login\">\n            Login\n          </a>\n        </div>\n\n        <hr/>\n        <div class=\"row\">\n          <div class=\"col-sm-4 col-md-3\">\n            <oauth-buttons classes=\"btn-block\"></oauth-buttons>\n          </div>\n        </div>\n      </form>\n    </div>\n  </div>\n  <hr>\n</div>\n");}]);
+$templateCache.put("app/account/signup/signup.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Sign up</h1>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.register(form)\" novalidate>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.name.$valid && vm.submitted,\n                                            \'has-error\': form.name.$invalid && vm.submitted }\">\n          <label>Name</label>\n\n          <input type=\"text\" name=\"name\" class=\"form-control\" ng-model=\"vm.user.name\"\n                 required/>\n          <p class=\"help-block\" ng-show=\"form.name.$error.required && vm.submitted\">\n            A name is required\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.email.$valid && vm.submitted,\n                                            \'has-error\': form.email.$invalid && vm.submitted }\">\n          <label>Email</label>\n\n          <input type=\"email\" name=\"email\" class=\"form-control\" ng-model=\"vm.user.email\"\n                 required\n                 mongoose-error/>\n          <p class=\"help-block\" ng-show=\"form.email.$error.email && vm.submitted\">\n            Doesn\'t look like a valid email.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.required && vm.submitted\">\n            What\'s your email address?\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.mongoose\">\n            {{ vm.errors.email }}\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.password.$valid && vm.submitted,\n                                            \'has-error\': form.password.$invalid && vm.submitted }\">\n          <label>Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.password\"\n                 ng-minlength=\"3\"\n                 required\n                 mongoose-error/>\n          <p class=\"help-block\"\n             ng-show=\"(form.password.$error.minlength || form.password.$error.required) && vm.submitted\">\n            Password must be at least 3 characters.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.password.$error.mongoose\">\n            {{ vm.errors.password }}\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.confirmPassword.$valid && vm.submitted,\n                                            \'has-error\': form.confirmPassword.$invalid && vm.submitted }\">\n          <label>Confirm Password</label>\n          <input type=\"password\" name=\"confirmPassword\" class=\"form-control\" ng-model=\"vm.user.confirmPassword\"\n                 match=\"vm.user.password\"\n                 ng-minlength=\"3\" required/>\n          <p class=\"help-block\"\n             ng-show=\"form.confirmPassword.$error.match && vm.submitted\">\n            Passwords must match.\n          </p>\n        </div>\n\n        <div>\n          <button class=\"btn btn-inverse btn-lg btn-register\" type=\"submit\">\n            Sign up\n          </button>\n          <a class=\"btn btn-default btn-lg btn-login\" ui-sref=\"login\">\n            Login\n          </a>\n        </div>\n\n        <hr/>\n        <div class=\"row\">\n          <div class=\"col-sm-4 col-md-3\">\n            <oauth-buttons classes=\"btn-block\"></oauth-buttons>\n          </div>\n        </div>\n      </form>\n    </div>\n  </div>\n  <hr>\n</div>\n");
+$templateCache.put("app/directives/formAic/formAic.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.name\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrDatatype\" class=\"form-group has-feedback\">\n        <label for=\"\">Tipo de dato del input : Valor que se ingresa a la base de datos</label>\n        <select class=\"form-control\" ng-model=\"record.getsetSelect(\'dataType\',\'string\')\" \n        ng-model-options=\"{ getterSetter: true }\" ng-options=\"item as item for item in dataTypes track by item\">\n        </select>\n    </div>\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttribute\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'attribute\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrInput\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el input: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'input\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"listOfObj\" class=\"form-group has-feedback\">\n        <table class=\"table\">\n            <tr>\n                <td>ID</td>\n                <td>DataType</td>\n                <td></td>\n            </tr>\n        </table>\n    </div>\n\n\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");
+$templateCache.put("app/directives/formAttr/formAttr.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"attribute\">attribute</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.name\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrDatatype\" class=\"form-group has-feedback\">\n        <label for=\"\">Tipo de dato del input : Valor que se ingresa a la base de datos</label>\n        <select class=\"form-control\" ng-model=\"record.getsetSelect(\'dataType\',\'string\')\" \n        ng-model-options=\"{ getterSetter: true }\" ng-options=\"item as item for item in dataTypes track by item\">\n        </select>\n    </div>\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrSchema\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'schema\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttribute\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'attribute\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrInput\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el input: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'input\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"listOfObj\" class=\"form-group has-feedback\">\n        <table class=\"table\">\n            <tr>\n                <td>ID</td>\n                <td>DataType</td>\n                <td></td>\n            </tr>\n        </table>\n    </div>\n\n\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");
+$templateCache.put("app/directives/formBuilder/formBuilder.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.getsetFLString(\'name\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");
+$templateCache.put("app/directives/formInput/formInput.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.name\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrDatatype\" class=\"form-group has-feedback\">\n        <label for=\"\">Tipo de dato del input : Valor que se ingresa a la base de datos</label>\n        <select class=\"form-control\" ng-model=\"record.getsetSelect(\'dataType\',\'string\')\" \n        ng-model-options=\"{ getterSetter: true }\" ng-options=\"item as item for item in dataTypes track by item\">\n        </select>\n    </div>\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n\n\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"listOfObj\" class=\"form-group has-feedback\">\n        <table class=\"table\">\n            <tr>\n                <td>ID</td>\n                <td>DataType</td>\n                <td></td>\n            </tr>\n        </table>\n    </div>\n\n\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");
+$templateCache.put("app/directives/formSaic/formSaic.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n<div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.name\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrDatatype\" class=\"form-group has-feedback\">\n        <label for=\"\">Tipo de dato del input : Valor que se ingresa a la base de datos</label>\n        <select class=\"form-control\" ng-model=\"record.getsetSelect(\'dataType\',\'string\')\" \n        ng-model-options=\"{ getterSetter: true }\" ng-options=\"item as item for item in dataTypes track by item\">\n        </select>\n    </div>\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrSchema\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'schema\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttribute\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'attribute\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrInput\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el input: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'input\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"listOfObj\" class=\"form-group has-feedback\">\n        <table class=\"table\">\n            <tr>\n                <td>ID</td>\n                <td>DataType</td>\n                <td></td>\n            </tr>\n        </table>\n    </div>\n\n\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");}]);

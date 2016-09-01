@@ -150,8 +150,8 @@ function index(req, res) {
 
   var query = {};
   //filtrar por schm
-  if (checkParam(req.query.schm, 'objectId')) {
-    query.schm = req.query.schm;
+  if (checkParam(req.query.type, 'string')) {
+    query.type = req.query.type;
     //console.log('schm')
   }
 
@@ -207,9 +207,15 @@ var findValueByVarHelper = function findValueByVarHelper(array, key, value, targ
   }
 };
 function fullSchm(schmId) {
+  console.log("El schema id es: " + schmId);
   var firstCall = function firstCall(s) {
     var query = { type: "schmAttrInputConf", attributes: { "$elemMatch": { id: "schema", reference: schmId } } };
-    return _q2.default.all([_schm2.default.findById(schmId), _schm2.default.find(query)]).spread(function (schm, schmAttrInputConf) {
+    _schm2.default.find({ type: "schmAttrInputConf", attributes: { "$elemMatch": { id: "schema", reference: "57c42f2fc8307cd5b82f4484" } } }).exec().then(function (f) {
+      console.log("Resultado de la query es: ");
+      console.log(f);
+    });
+    return _q2.default.all([_schm2.default.find(query).exec(), _schm2.default.findById(schmId)]).spread(function (schmAttrInputConf, schm) {
+      console.log("El schm id es : " + schm._id + " y la cantidad de schmAttrInputConf es: " + schmAttrInputConf.length);
       var index = schm.attributes.map(function (x) {
         return x.id;
       }).indexOf("attributes");
@@ -217,7 +223,6 @@ function fullSchm(schmId) {
       if (index !== -1) {
         AttrList = schm.attributes[index].list;
       }
-
       return {
         schema: schm,
         schmAttrInputConf: schmAttrInputConf,
@@ -254,7 +259,7 @@ function fullSchm(schmId) {
     for (var i = 0; i < inputRefs.length; i++) {
       queryInputs["$or"].push({ _id: inputRefs[i] });
     }
-    console.log(queryInputs);
+    //console.log(queryInputs);
     return _schm2.default.find(queryInputs).then(function (s) {
       d.inputs = s;
       return d;
@@ -277,67 +282,10 @@ function fullSchm(schmId) {
 
 // Gets a single Schm from the DB
 function show(req, res) {
-  /*var schmId = req.params.id;
-  // obtener schema y schmAttrInputConf
-  
-  var firstCall = function(s){
-    var query = { type:"schmAttrInputConf", attributes:{  "$elemMatch":{id:"schema", reference:schmId}  }   }
-          return q.all([
-        Schm.findById(schmId),
-        Schm.find(query)
-      ]).spread( (schm,schmAttrInputConf) =>{
-        var index = schm.attributes.map(x=>x.id).indexOf("attributes");
-        var AttrList = [];
-        if(index!==-1){AttrList = schm.attributes[index].list}
-         return {
-          schema:schm,
-          schmAttrInputConf:schmAttrInputConf,
-          list: AttrList
-        }
-        
-      })
-     }
-  var secondCall = function(d){
-      var query = {"$or":[]};
-      for (var i = 0; i < d.list.length; i++) {
-        query["$or"].push({ _id: d.list[i] });
-      }
-      d.query = query;
-      return d
-      
-    }
-  var thirdCall = function(d){
-      return Schm.find(d.query).then(function(s){
-        d.attributes = s;
-        return d
-      })
-    }
-  var forthCall = function(d){
-      var inputRefs = d.attributes.map(x=>findValueByVarHelper(x.attributes,"id", "input", "reference"));
-      var queryInputs = {"$or":[]};
-        for (var i = 0; i < inputRefs.length; i++) {
-          queryInputs["$or"].push({ _id: inputRefs[i] });
-        }
-      console.log(inputRefs);
-      //d.queryInputs = queryInputs;
-      return Schm.find(queryInputs).then(function(s){
-          d.inputs = s;
-          return d
-        })
-    }
-  var concatCall  = function(d){
-    var concat = [d.schema];
-    concat = concat.concat(d.attributes);
-    concat = concat.concat(d.schmAttrInputConf);
-    concat = concat.concat(d.inputs);
-    return concat;
+  if (req.query.record_only === "true") {
+    return _schm2.default.findById(req.params.id).exec().then(handleEntityNotFound(res)).then(respondWithResult(res)).catch(handleError(res));
   }
-  q.fcall(x=>true)
-    .then(firstCall)
-    .then(secondCall)
-    .then(thirdCall)
-    .then(forthCall)
-    .then(concatCall)*/
+
   fullSchm(req.params.id).then(function (d) {
     respondWithResult(res)(d);
   }).fail(handleError(res));

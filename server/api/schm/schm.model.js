@@ -32,7 +32,7 @@ var SchmSchema = new Schema({
     type: Schema.Types.String,
     name: Schema.Types.String,
     schm: Schema.Types.ObjectId,
-    created: Schema.Types.Date,
+    created: { type: Schema.Types.Date, required: true, default: Date.now },
     updated: [updatedSchema],
     attributes: [attrsSchema]
 });
