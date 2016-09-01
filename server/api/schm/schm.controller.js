@@ -44,7 +44,7 @@ function respondWithResult(res, statusCode) {
 
 function saveUpdates(updates) {
   return function (entity) {
-    var updated = _lodash2.default.merge(entity, updates);
+    var updated = _lodash2.default.extend(entity, updates);
     return updated.save().then(function (updated) {
       return updated;
     });
