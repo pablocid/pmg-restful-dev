@@ -30,7 +30,7 @@ var attrsSchema = new Schema({
 
 var RecordSchema = new Schema({
 	schm: Schema.Types.ObjectId,
-	created: Schema.Types.Date,
+	created: { type: Schema.Types.Date, required: true, default: Date.now },
 	updated: [updatedSchema],
 	attributes: [attrsSchema]
 });
