@@ -189,9 +189,9 @@ function index(req, res) {
 
 // Gets a single Record from the DB
 function show(req, res) {
-  //check if id is objectId
+  //si schm, key y datatype estan presentes, el id será tomado como el valor del atributo y no como _id
   var query;
-  if (!checkParam(req.params.id, 'objectId') && checkParam(req.query.schm, 'objectId') && checkParam(req.query.key, 'objectId') && checkParam(req.query.datatype, 'string')) {
+  if (checkParam(req.query.schm, 'objectId') && checkParam(req.query.key, 'objectId') && checkParam(req.query.datatype, 'string')) {
     query = { schm: req.query.schm, attributes: {} };
     query.attributes["$elemMatch"] = {};
     query.attributes["$elemMatch"]["id"] = req.query.key;
