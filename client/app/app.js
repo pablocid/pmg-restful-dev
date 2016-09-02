@@ -326,6 +326,11 @@ angular.module('pmgRestfulApiApp').directive('formAic', function ($compile, $log
               view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
               //view.find('input').attr("value",new Date())
               break;
+            case 'reference':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
           }
           var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
           eraseBtn.attr("attrId", id);
@@ -465,6 +470,11 @@ angular.module('pmgRestfulApiApp').directive('formAttr', function ($compile, $lo
               view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
               //view.find('input').attr("value",new Date())
               break;
+            case 'reference':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
           }
           var eraseBtn = angular.element('<button type="button" class="btn btn-danger">Borrar Attributo </button>');
           eraseBtn.attr("attrId", id);
@@ -603,6 +613,11 @@ angular.module('pmgRestfulApiApp').directive('formBuilder', function ($compile, 
               view.find("label").text(id);
               view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
               //view.find('input').attr("value",new Date())
+              break;
+            case 'reference':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
               break;
           }
           var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
@@ -959,6 +974,11 @@ angular.module('pmgRestfulApiApp').directive('formInput', function ($compile, $l
               view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
               //view.find('input').attr("value",new Date())
               break;
+            case 'reference':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
+              break;
           }
           var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
           eraseBtn.attr("attrId", id);
@@ -1105,6 +1125,11 @@ angular.module('pmgRestfulApiApp').directive('formSaic', function ($compile, $lo
               view.find("label").text(id);
               view.find('input').attr("ng-model", "record.getsetDate('" + id + "','" + dt + "')");
               //view.find('input').attr("value",new Date())
+              break;
+            case 'reference':
+              view = theme.find("#stringTheme").clone();
+              view.find("label").text(id);
+              view.find('input').attr("ng-model", "record.getsetString('" + id + "','" + dt + "')");
               break;
           }
           var eraseBtn = angular.element('<button type="button">Borrar Attributo </button>');
