@@ -156,7 +156,11 @@ function index(req, res) {
     query.schm = req.query.schm;
     //console.log('schm')
   }
-
+  // populate by attr objectId
+  if (checkParam(req.query.populate, 'objectId')) {
+    //query.populate = req.query.populate;
+    //console.log('schm')
+  }
   if (checkParam(req.query.filter, 'filter')) {
     query["$and"] = [];
 
@@ -170,21 +174,67 @@ function index(req, res) {
     }
     //console.log(filter);
   }
-  var qAllArr = [_record2.default.find(query).count().exec(), _record2.default.find(query).skip(items * (page - 1)).limit(items)];
+  var qAllArr = [_record2.default.find(query).count().exec(), _record2.default.find(query).sort({ created: -1 }).skip(items * (page - 1)).limit(items)];
   if (query.schm) {
     qAllArr.push(Schm.fullSchm(query.schm));
   }
-
   _q2.default.all(qAllArr).spread(function (count, data, schema) {
-    respondWithResult(res)({
+    return {
       page: parseInt(page),
       pages: Math.ceil(count / items),
       length: data.length,
       totalLength: count,
       schema: schema,
       items: data
-    });
+    };
+  }).then(function (x) {
+    if (checkParam(req.query.populate, 'objectId')) {
+      return PopulateByAttr(x, req.query.populate);
+    }
+    return x;
+  }).then(function (x) {
+    if (x.schemaPopulated) {
+      return Schm.fullSchm(x.schemaPopulated).then(function (s) {
+        x.schemaPopulated = s;
+        return x;
+      });
+    } else {
+      return x;
+    }
+  }).then(function (x) {
+    return respondWithResult(res)(x);
   }).fail(handleError(res));
+
+  function PopulateByAttr(res, attrId) {
+    res.itemsPopulated = res.items.map(function (x) {
+      return x.attributes.filter(function (x) {
+        return x.id === attrId;
+      }).map(function (x) {
+        return x.reference;
+      });
+    }).map(function (x) {
+      if (x.length) {
+        return x[0];
+      } else {
+        return null;
+      }
+    }).filter(function (x) {
+      return x;
+    });
+    var popQuery = { "$or": [] };
+    for (var q = 0; q < res.itemsPopulated.length; q++) {
+      popQuery.$or.push({ _id: res.itemsPopulated[q] });
+    }
+
+    return _record2.default.find(popQuery).exec().then(function (x) {
+      if (x.length) {
+        res.schemaPopulated = x[0].schm;
+      }
+      res.itemsPopulated = x;
+      return res;
+    });
+    //filtrar la referencia del 
+  }
 }
 
 // Gets a single Record from the DB

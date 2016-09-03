@@ -11,7 +11,7 @@ var controller = require('./record.controller');
 
 
 var router = express.Router();
-router.get('/', auth.hasRole('user'), controller.index);
+router.get('/', /*auth.hasRole('user'),*/controller.index);
 router.get('/:id', auth.hasRole('user'), controller.show);
 router.post('/', auth.hasRole('user'), controller.create);
 router.put('/:id', auth.hasRole('user'), controller.update);
