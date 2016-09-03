@@ -1654,7 +1654,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         this.$http.get('/api/records?schm=57c42f2fc8307cd5b82f4484').then(function (response) {
           _this.data = response.data;
           _this.records = _this.data.items;
-          _this.socket.syncUpdates('record', _this.data);
+          _this.socket.syncUpdates('record', _this.records, function (event, item, obj) {
+            this.records = item;
+          });
         });
       }
     }]);
