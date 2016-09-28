@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('pmgRestfulApiApp', ['pmgRestfulApiApp.auth', 'pmgRestfulApiApp.admin', 'pmgRestfulApiApp.constants', 'ngCookies', 'ngResource', 'ngSanitize', 'btford.socket-io', 'ui.router', 'ui.bootstrap', 'validation.match']).config(function ($urlRouterProvider, $locationProvider) {
+angular.module('pmgRestfulApiApp', ['pmgRestfulApiApp.auth', 'pmgRestfulApiApp.admin', 'pmgRestfulApiApp.constants', 'ngCookies', 'ngResource', 'ngSanitize', 'btford.socket-io', 'ui.router', 'ui.bootstrap', 'validation.match', 'ngAnimate', 'ngMaterial']).config(function ($urlRouterProvider, $locationProvider) {
   $urlRouterProvider.otherwise('/');
 
   $locationProvider.html5Mode(true);
@@ -29,7 +29,8 @@ angular.module('pmgRestfulApiApp.util', []);
 angular.module('pmgRestfulApiApp').config(function ($stateProvider) {
   $stateProvider.state('login', {
     url: '/login',
-    templateUrl: 'app/account/login/login.html',
+    //templateUrl: 'app/account/login/login.html',
+    template: '<login></login>',
     controller: 'LoginController',
     controllerAs: 'vm'
   }).state('logout', {
@@ -249,6 +250,101 @@ angular.module('pmgRestfulApiApp.admin').config(function ($stateProvider) {
 	});
 })(angular);
 //# sourceMappingURL=app.constant.js.map
+
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LoginController = function () {
+  function LoginController(Auth, $state) {
+    _classCallCheck(this, LoginController);
+
+    this.user = {
+      email: '',
+      password: ''
+    };
+    this.errors = {};
+    this.submitted = false;
+
+    this.Auth = Auth;
+    this.$state = $state;
+  }
+
+  _createClass(LoginController, [{
+    key: 'login',
+    value: function login(form) {
+      var _this = this;
+
+      this.submitted = true;
+
+      if (form.$valid) {
+        this.Auth.login({
+          email: this.user.email,
+          password: this.user.password
+        }).then(function () {
+          // Logged in, redirect to home
+          _this.$state.go('main');
+        }).catch(function (err) {
+          _this.errors.other = err.message;
+        });
+      }
+    }
+  }]);
+
+  return LoginController;
+}();
+
+angular.module('pmgRestfulApiApp').component('login', {
+  templateUrl: 'app/components/login/login.html',
+  bindings: { message: '<' },
+  controller: LoginController
+});
+//# sourceMappingURL=login.component.js.map
+
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var mainNavBarController = function () {
+  function mainNavBarController($mdSidenav) {
+    _classCallCheck(this, mainNavBarController);
+
+    this.sidenav = {
+      title: "VineTracker menu"
+    };
+    this.toggleLeft = function () {
+      console.log("HOLI");
+      $mdSidenav('left').toggle();
+    };
+    this.menuList = [{ label: 'login', link: 'state' }, { label: 'logout', link: 'state' }, { label: 'admin area', link: 'state' }];
+    this.cardList = [{ title: 'Consultar', subTitle: 'Consultar información de plantas y evaluaciones', imgSrc: 'http://lh6.googleusercontent.com/-zhqjMSQCep8/AAAAAAAAAAI/AAAAAAAAJEU/IEe3YTD2kE0/s60-c/photo.jpg', btnLabel: 'ir' }, { title: 'Editar', subTitle: 'Crea o modifica información de plantas y evaluaciones', imgSrc: 'http://lh6.googleusercontent.com/-zhqjMSQCep8/AAAAAAAAAAI/AAAAAAAAJEU/IEe3YTD2kE0/s60-c/photo.jpg', btnLabel: 'ir' }, { title: 'Admin', subTitle: 'Ingresar al área de administración de la aplicación', imgSrc: 'http://lh6.googleusercontent.com/-zhqjMSQCep8/AAAAAAAAAAI/AAAAAAAAJEU/IEe3YTD2kE0/s60-c/photo.jpg', btnLabel: 'ir' }];
+  }
+
+  _createClass(mainNavBarController, [{
+    key: "menuListClick",
+    value: function menuListClick(index) {
+      console.log(this.menuList[index].label);
+    }
+  }, {
+    key: "cardListClick",
+    value: function cardListClick(index) {
+      console.log(this.cardList[index].title);
+    }
+  }]);
+
+  return mainNavBarController;
+}();
+
+angular.module('pmgRestfulApiApp').component('mainBar', {
+  templateUrl: 'app/components/mainNavBar/mainNavBar.html',
+  bindings: { message: '<', theme: '<' },
+  controller: mainNavBarController
+});
+//# sourceMappingURL=mainNavBar.component.js.map
 
 'use strict';
 
@@ -1625,7 +1721,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 angular.module('pmgRestfulApiApp').config(function ($stateProvider) {
   $stateProvider.state('main', {
     url: '/',
-    template: '<main></main>'
+    template: '\n      <navbar></navbar>\n      <main></main>\n      <footer></footer>\n      '
   });
 });
 //# sourceMappingURL=main.js.map
@@ -1656,6 +1752,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           _this.records = _this.data.items;
           _this.socket.syncUpdates('record', _this.records, function (event, item, obj) {
             this.records = item;
+            console.log(obj);
           });
         });
       }
@@ -1717,7 +1814,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'find',
             value: function find(array, key, value, target) {
-                var self = this;
                 if (!Array.isArray(array)) {
                     return null;
                 }
@@ -2628,6 +2724,73 @@ angular.module('pmgRestfulApiApp').directive('footer', function () {
 
 'use strict';
 
+angular.module('pmgRestfulApiApp').config(function ($provide, $mdThemingProvider) {
+  /*
+  var colorStore = {};
+   //fetch the colors out of the themeing provider
+  Object.keys($mdThemingProvider._PALETTES).forEach(
+    // clone the pallete colors to the colorStore var
+    function(palleteName) {
+      var pallete = $mdThemingProvider._PALETTES[palleteName];
+      var colors  = [];
+      colorStore[palleteName]=colors;
+      Object.keys(pallete).forEach(function(colorName) {
+        // use an regex to look for hex colors, ignore the rest
+        if (/#[0-9A-Fa-f]{6}|0-9A-Fa-f]{8}\b/.exec(pallete[colorName])) {
+          colors[colorName] = pallete[colorName];
+        }
+      });
+    });
+   $provide.factory('mdThemeColors', [
+    function() {
+       Object.defineProperty(service,'primary', {
+        get: getColorFactory('primary')
+      });
+       Object.defineProperty(service,'accent', {
+        get: getColorFactory('accent')
+      });
+       Object.defineProperty(service,'warn', {
+        get: getColorFactory('warn')
+      });
+       Object.defineProperty(service,'background', {
+        get: getColorFactory('background')
+      });
+       return {
+        getColorFactory: function(intent,nameTheme){
+            var nameThemes = nameTheme || 'default';
+            var colors = $mdThemingProvider._THEMES[nameThemes].colors[intent];
+            var name = colors.name;
+            // Append the colors with links like hue-1, etc
+            colorStore[name].default = colorStore[name][colors.hues['default']];
+            colorStore[name].hue1 = colorStore[name][colors.hues['hue-1']];
+            colorStore[name].hue2 = colorStore[name][colors.hues['hue-2']];
+            colorStore[name].hue3 = colorStore[name][colors.hues['hue-3']];
+            return colorStore[name];
+         }
+      };
+    }
+  ]);
+  */
+  /*********NAVBAR*********/
+  //$mdThemingProvider.theme('navbar')
+  //.primaryPalette('indigo')
+  //.warnPalette('purple')
+  //.accentPalette('pink')
+  //.backgroundPalette('indigo');
+  /*********END NAVBAR*********/
+  $mdThemingProvider.theme('default').primaryPalette('indigo').accentPalette('pink').warnPalette('red');
+
+  $mdThemingProvider.theme('dark-indigo').backgroundPalette('indigo').dark();
+  $mdThemingProvider.theme('dark-grey').backgroundPalette('grey').dark();
+  $mdThemingProvider.theme('dark-orange').backgroundPalette('orange').dark();
+  $mdThemingProvider.theme('dark-purple').backgroundPalette('deep-purple').dark();
+  $mdThemingProvider.theme('dark-blue').backgroundPalette('blue').dark();
+  //.backgroundPalette('grey')
+});
+//# sourceMappingURL=color.js.map
+
+'use strict';
+
 angular.module('pmgRestfulApiApp').factory('Modal', function ($rootScope, $uibModal) {
   /**
    * Opens a modal
@@ -2726,21 +2889,54 @@ angular.module('pmgRestfulApiApp').directive('mongooseError', function () {
 
 'use strict';
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var NavbarController =
-//end-non-standard
+var NavbarController = function () {
+  //end-non-standard
 
-//start-non-standard
-function NavbarController(Auth) {
-  _classCallCheck(this, NavbarController);
+  //start-non-standard
+  function NavbarController(Auth, $mdSidenav) {
+    _classCallCheck(this, NavbarController);
 
-  this.isLoggedIn = Auth.isLoggedIn;
-  this.isAdmin = Auth.isAdmin;
-  this.getCurrentUser = Auth.getCurrentUser;
-};
+    this.isLoggedIn = Auth.isLoggedIn;
+    this.isAdmin = Auth.isAdmin;
+    this.getCurrentUser = Auth.getCurrentUser;
+    this.hola = 'Hola';
+    this.$mdSidenav = $mdSidenav;
+  }
+
+  _createClass(NavbarController, [{
+    key: '$onInit',
+    value: function $onInit() {
+      var self = this;
+      this.buildToggler = function (componentId) {
+        return function () {
+          self.$mdSidenav(componentId).toggle();
+        };
+      };
+    }
+  }]);
+
+  return NavbarController;
+}();
 
 angular.module('pmgRestfulApiApp').controller('NavbarController', NavbarController);
+
+/*
+
+$scope.toggleLeft = buildToggler('left');
+    $scope.toggleRight = buildToggler('right');
+
+    function buildToggler(componentId) {
+      return function() {
+        $mdSidenav(componentId).toggle();
+      };
+    }
+
+
+*/
 //# sourceMappingURL=navbar.controller.js.map
 
 'use strict';
@@ -2930,18 +3126,20 @@ angular.module('pmgRestfulApiApp').factory('socket', function (socketFactory) {
 })();
 //# sourceMappingURL=util.service.js.map
 
-angular.module("pmgRestfulApiApp").run(["$templateCache", function($templateCache) {$templateCache.put("app/admin/admin.html","<div class=\"container\">\n  <p>The delete user and user index api routes are restricted to users with the \'admin\' role.</p>\n  <ul class=\"list-group user-list\">\n    <li class=\"list-group-item\" ng-repeat=\"user in admin.users\">\n	    <div class=\"user-info\">\n	        <strong>{{user.name}}</strong><br>\n	        <span class=\"text-muted\">{{user.email}}</span>\n	    </div>\n        <a ng-click=\"admin.delete(user)\" class=\"trash\"><span class=\"fa fa-trash fa-2x\"></span></a>\n    </li>\n  </ul>\n</div>\n");
-$templateCache.put("app/main/main.html","<header class=\"hero-unit\" id=\"banner\">\n  <div class=\"container\">\n    <h1>\'Allo, \'Allo!</h1>\n    <p class=\"lead\">Kick-start your next web app with Angular Fullstack</p>\n    <img src=\"assets/images/yeoman-462ccecbb1.png\" alt=\"I\'m Yeoman\">\n  </div>\n</header>\n\n<div class=\"container\">\n  <!--\n  <div class=\"row\">\n    <div class=\"col-lg-12\">\n      <h1 class=\"page-header\">Features:</h1>\n      <ul class=\"nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6\" ng-repeat=\"thing in $ctrl.awesomeThings\">\n        <li><a href=\"#\" uib-tooltip=\"{{thing.info}}\">{{thing.name}}<button type=\"button\" class=\"close\" ng-click=\"$ctrl.deleteThing(thing)\">&times;</button></a></li>\n      </ul>\n    </div>\n  </div>\n\n  <form class=\"thing-form\">\n    <label>Syncs in realtime across clients</label>\n    <p class=\"input-group\">\n      <input type=\"text\" class=\"form-control\" placeholder=\"Add a new thing here.\" ng-model=\"$ctrl.newThing\">\n      <span class=\"input-group-btn\">\n        <button type=\"submit\" class=\"btn btn-primary\" ng-click=\"$ctrl.addThing()\">Add New</button>\n      </span>\n    </p>\n  </form>\n-->\n</div>\n");
-$templateCache.put("app/records/records.html","<div>Records</div>\n\n<table class=\"table\">\n    <tr>\n        <td>ID</td>\n        <td>Schema</td>\n    </tr>\n    <tr ng-repeat=\"record in recordsCtrl.records\">\n        <td >{{record._id}}</td>\n        <td>{{record.schm}}</td>\n    </tr>\n</table>");
+angular.module("pmgRestfulApiApp").run(["$templateCache", function($templateCache) {$templateCache.put("components/footer/footer.html","<md-content layout=\"column\" layout-align=\"center center\">\n  <p flex> PMGV - INIA La Platina -  2016</p>\n  <md-button class=\"md-raised\" >Click me</md-button>\n  <md-button class=\"md-raised md-accent\">or maybe me</md-button>\n  <md-button class=\"md-raised md-primary\" >Careful</md-button>\n</md-content>");
+$templateCache.put("components/modal/modal.html","<div class=\"modal-header\">\n  <button ng-if=\"modal.dismissable\" type=\"button\" ng-click=\"$dismiss()\" class=\"close\">&times;</button>\n  <h4 ng-if=\"modal.title\" ng-bind=\"modal.title\" class=\"modal-title\"></h4>\n</div>\n<div class=\"modal-body\">\n  <p ng-if=\"modal.text\" ng-bind=\"modal.text\"></p>\n  <div ng-if=\"modal.html\" ng-bind-html=\"modal.html\"></div>\n</div>\n<div class=\"modal-footer\">\n  <button ng-repeat=\"button in modal.buttons\" ng-class=\"button.classes\" ng-click=\"button.click($event)\" ng-bind=\"button.text\" class=\"btn\"></button>\n</div>\n");
+$templateCache.put("components/navbar/navbar.html","<!-- <div class=\"navbar navbar-default navbar-static-top\" ng-controller=\"NavbarController\">\n  <div class=\"container\">\n    <div class=\"navbar-header\">\n      <button class=\"navbar-toggle\" type=\"button\" ng-click=\"nav.isCollapsed = !nav.isCollapsed\">\n        <span class=\"sr-only\">Toggle navigation</span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n      </button>\n      <a href=\"/\" class=\"navbar-brand\">pmg-restful-api</a>\n    </div>\n    <div uib-collapse=\"nav.isCollapsed\" class=\"navbar-collapse collapse\" id=\"navbar-main\">\n      <ul class=\"nav navbar-nav\">\n        <li ng-repeat=\"item in nav.menu\" ui-sref-active=\"active\">\n            <a ui-sref=\"{{item.state}}\">{{item.title}}</a>\n        </li>\n        <li ng-show=\"nav.isAdmin()\" ui-sref-active=\"active\"><a ui-sref=\"admin\">Admin</a></li>\n      </ul>\n\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-hide=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"signup\">Sign up</a></li>\n        <li ng-hide=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"login\">Login</a></li>\n        <li ng-show=\"nav.isLoggedIn()\"><p class=\"navbar-text\">Hello {{ nav.getCurrentUser().name }}</p> </li>\n        <li ng-show=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"settings\"><span class=\"glyphicon glyphicon-cog\"></span></a></li>\n        <li ng-show=\"nav.isLoggedIn()\"><a ui-sref=\"logout\">Logout</a></li>\n      </ul>\n    </div>\n  </div>\n</div>\n-->\n<!--\n  <md-toolbar  theme=\"cira\" class=\"mg-padding\">\n     <h2 flex>Toolbar: md-warn</h2>\n     <md-button class=\"md-icon-button\" aria-label=\"More\">\n        <md-icon md-svg-icon=\"img/icons/more_vert.svg\"></md-icon>\n      </md-button>\n  </md-toolbar>-->\n\n  \n<main-bar></main-bar>\n\n\n\n<!--\n   <section layout=\"row\" flex>\n     <h1>{{nav.hola}}</h1>\n    <md-sidenav class=\"md-sidenav-left\" md-component-id=\"left\"\n                md-disable-backdrop md-whiteframe=\"4\">\n\n      <md-toolbar class=\"md-theme-indigo\">\n        <h1 class=\"md-toolbar-tools\">Disabled Backdrop</h1>\n      </md-toolbar>\n\n      <md-content layout-margin>\n        <p>\n          This sidenav is not showing any backdrop, where users can click on it, to close the sidenav.\n        </p>\n        <md-button ng-click=\"nav.toggleLeft()\" class=\"md-accent\">\n          Close this Sidenav\n        </md-button>\n      </md-content>\n\n    </md-sidenav>\n\n    <md-content flex layout-padding>\n\n      <div layout=\"column\" layout-align=\"top center\">\n        <p>\n          Developers can also disable the backdrop of the sidenav.<br/>\n          This will disable the functionality to click outside to close the sidenav.\n        </p>\n\n        <div>\n          <md-button ng-click=\"nav.toggleLeft()\" class=\"md-raised\">\n            Toggle Sidenav\n          </md-button>\n        </div>\n\n      </div>\n\n    </md-content>\n\n  </section>\n-->");
+$templateCache.put("components/oauth-buttons/oauth-buttons.html","<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'facebook\')\" class=\"btn btn-social btn-facebook\">\n  <i class=\"fa fa-facebook\"></i>\n  Connect with Facebook\n</a>\n<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'google\')\" class=\"btn btn-social btn-google\">\n  <i class=\"fa fa-google-plus\"></i>\n  Connect with Google+\n</a>\n<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'twitter\')\" class=\"btn btn-social btn-twitter\">\n  <i class=\"fa fa-twitter\"></i>\n  Connect with Twitter\n</a>\n");
+$templateCache.put("app/admin/admin.html","<div class=\"container\">\n  <p>The delete user and user index api routes are restricted to users with the \'admin\' role.</p>\n  <ul class=\"list-group user-list\">\n    <li class=\"list-group-item\" ng-repeat=\"user in admin.users\">\n	    <div class=\"user-info\">\n	        <strong>{{user.name}}</strong><br>\n	        <span class=\"text-muted\">{{user.email}}</span>\n	    </div>\n        <a ng-click=\"admin.delete(user)\" class=\"trash\"><span class=\"fa fa-trash fa-2x\"></span></a>\n    </li>\n  </ul>\n</div>\n");
+$templateCache.put("app/main/main.html","\n<md-content layout=\"column\" flex-offset-gt-md=\"15\" flex-gt-md=\"70\" flex=\"100\" layout-align=\"center none\">\n  <schemas flex layout-padding></schemas>\n\n</md-content>");
+$templateCache.put("app/records/records.html","<div>Records</div>\n\n<table class=\"table\">\n    <tr>\n        <td>ID</td>\n        <td>Schema</td>\n    </tr>\n    <tr ng-repeat=\"record in recordsCtrl.records | orderBy:\'-created\'\">\n        <td>{{record._id}}</td>\n        <td>{{record.schm}}</td>\n    </tr>\n</table>");
 $templateCache.put("app/schemas/schema-edit.html","<form-builder reg=\"seCtrl.response\"></form-builder>");
 $templateCache.put("app/schemas/schemas.html","<div class=\"col-md-12\">\n  <h1>Schemas disponibles</h1>\n   <uib-tabset active=\"active\">\n    <uib-tab index=\"0\" heading=\"SCHEMAS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'schema\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/schema/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"1\" heading=\"ATTRIBUTES\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'attribute\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/attribute/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"2\" heading=\"INPUTS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'input\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/input/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"3\" heading=\"ATTRIBUTES-INPUTS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'attrInputConf\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/attrInputConf/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"4\" heading=\"SCHEMA-ATTRIBUTES-INPUTS\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | filter:{type:\'schmAttrInputConf\'}:true | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n      <a type=\"button\" class=\"btn btn-success\" href=\"schemas/schmAttrInputConf/new\">NEW</a>\n    </uib-tab>\n    <uib-tab index=\"0\" heading=\"ALL\">\n      <table class=\"table\">\n        <tr>\n          <td>ID</td>\n          <td>Created</td>\n          <td>Tipo</td>\n          <td>Nombre</td>\n          <td>Descripción</td>\n          <td>Edit</td>\n        </tr>\n        <tr ng-repeat=\"section in schmCtrl.items | orderBy:\'-created\'\">\n          <td>{{section._id}}</td>\n          <td>{{section.created | date:\'yyyy-MM-dd HH:mm:ss\'}}</td>\n          <td>{{section.type}}</td>\n          <td><a href=\"javascript:;\" >{{schmCtrl.find(section.attributes, \"id\",\"name\", \"string\")}}</a></td>\n          <td>{{schmCtrl.find(section.attributes, \"id\",\"description\", \"string\")}}</td>\n          <td><a class=\"btn btn-primary\" href=\"/schemas/{{section.type}}/{{section._id}}/edit\" >Editar</a></td>\n        </tr>\n      </table>\n    </uib-tab>\n    <uib-tab index=\"4\" heading=\"RAW\">\n      <pre>\n        {{schmCtrl}}\n      </pre>\n      \n    </uib-tab>\n\n\n\n\n  </uib-tabset>\n</div>");
-$templateCache.put("components/footer/footer.html","<div class=\"container\">\n  <p> PMGV - INIA La Platina -  2016\n  </p>\n</div>\n");
-$templateCache.put("components/modal/modal.html","<div class=\"modal-header\">\n  <button ng-if=\"modal.dismissable\" type=\"button\" ng-click=\"$dismiss()\" class=\"close\">&times;</button>\n  <h4 ng-if=\"modal.title\" ng-bind=\"modal.title\" class=\"modal-title\"></h4>\n</div>\n<div class=\"modal-body\">\n  <p ng-if=\"modal.text\" ng-bind=\"modal.text\"></p>\n  <div ng-if=\"modal.html\" ng-bind-html=\"modal.html\"></div>\n</div>\n<div class=\"modal-footer\">\n  <button ng-repeat=\"button in modal.buttons\" ng-class=\"button.classes\" ng-click=\"button.click($event)\" ng-bind=\"button.text\" class=\"btn\"></button>\n</div>\n");
-$templateCache.put("components/navbar/navbar.html","<div class=\"navbar navbar-default navbar-static-top\" ng-controller=\"NavbarController\">\n  <div class=\"container\">\n    <div class=\"navbar-header\">\n      <button class=\"navbar-toggle\" type=\"button\" ng-click=\"nav.isCollapsed = !nav.isCollapsed\">\n        <span class=\"sr-only\">Toggle navigation</span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n        <span class=\"icon-bar\"></span>\n      </button>\n      <a href=\"/\" class=\"navbar-brand\">pmg-restful-api</a>\n    </div>\n    <div uib-collapse=\"nav.isCollapsed\" class=\"navbar-collapse collapse\" id=\"navbar-main\">\n      <ul class=\"nav navbar-nav\">\n        <li ng-repeat=\"item in nav.menu\" ui-sref-active=\"active\">\n            <a ui-sref=\"{{item.state}}\">{{item.title}}</a>\n        </li>\n        <li ng-show=\"nav.isAdmin()\" ui-sref-active=\"active\"><a ui-sref=\"admin\">Admin</a></li>\n      </ul>\n\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-hide=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"signup\">Sign up</a></li>\n        <li ng-hide=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"login\">Login</a></li>\n        <li ng-show=\"nav.isLoggedIn()\"><p class=\"navbar-text\">Hello {{ nav.getCurrentUser().name }}</p> </li>\n        <li ng-show=\"nav.isLoggedIn()\" ui-sref-active=\"active\"><a ui-sref=\"settings\"><span class=\"glyphicon glyphicon-cog\"></span></a></li>\n        <li ng-show=\"nav.isLoggedIn()\"><a ui-sref=\"logout\">Logout</a></li>\n      </ul>\n    </div>\n  </div>\n</div>\n");
-$templateCache.put("components/oauth-buttons/oauth-buttons.html","<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'facebook\')\" class=\"btn btn-social btn-facebook\">\n  <i class=\"fa fa-facebook\"></i>\n  Connect with Facebook\n</a>\n<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'google\')\" class=\"btn btn-social btn-google\">\n  <i class=\"fa fa-google-plus\"></i>\n  Connect with Google+\n</a>\n<a ng-class=\"classes\" ng-click=\"OauthButtons.loginOauth(\'twitter\')\" class=\"btn btn-social btn-twitter\">\n  <i class=\"fa fa-twitter\"></i>\n  Connect with Twitter\n</a>\n");
 $templateCache.put("app/account/login/login.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Login</h1>\n      <p>Accounts are reset on server restart from <code>server/config/seed.js</code>. Default account is <code>test@example.com</code> / <code>test</code></p>\n      <p>Admin account is <code>admin@example.com</code> / <code>admin</code></p>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.login(form)\" novalidate>\n\n        <div class=\"form-group\">\n          <label>Email</label>\n\n          <input type=\"email\" name=\"email\" class=\"form-control\" ng-model=\"vm.user.email\" required>\n        </div>\n\n        <div class=\"form-group\">\n          <label>Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.password\" required>\n        </div>\n\n        <div class=\"form-group has-error\">\n          <p class=\"help-block\" ng-show=\"form.email.$error.required && form.password.$error.required && vm.submitted\">\n             Please enter your email and password.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.email && vm.submitted\">\n             Please enter a valid email.\n          </p>\n\n          <p class=\"help-block\">{{ vm.errors.other }}</p>\n        </div>\n\n        <div>\n          <button class=\"btn btn-inverse btn-lg btn-login\" type=\"submit\">\n            Login\n          </button>\n          <a class=\"btn btn-default btn-lg btn-register\" ui-sref=\"signup\">\n            Register\n          </a>\n        </div>\n\n        <hr/>\n        <div class=\"row\">\n          <div class=\"col-sm-4 col-md-3\">\n            <oauth-buttons classes=\"btn-block\"></oauth-buttons>\n          </div>\n        </div>\n      </form>\n    </div>\n  </div>\n  <hr>\n</div>\n");
 $templateCache.put("app/account/settings/settings.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Change Password</h1>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.changePassword(form)\" novalidate>\n\n        <div class=\"form-group\">\n          <label>Current Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.oldPassword\"\n                 mongoose-error/>\n          <p class=\"help-block\" ng-show=\"form.password.$error.mongoose\">\n              {{ vm.errors.other }}\n          </p>\n        </div>\n\n        <div class=\"form-group\">\n          <label>New Password</label>\n\n          <input type=\"password\" name=\"newPassword\" class=\"form-control\" ng-model=\"vm.user.newPassword\"\n                 ng-minlength=\"3\"\n                 required/>\n          <p class=\"help-block\"\n             ng-show=\"(form.newPassword.$error.minlength || form.newPassword.$error.required) && (form.newPassword.$dirty || vm.submitted)\">\n            Password must be at least 3 characters.\n          </p>\n        </div>\n\n        <div class=\"form-group\">\n          <label>Confirm New Password</label>\n\n          <input type=\"password\" name=\"confirmPassword\" class=\"form-control\" ng-model=\"vm.user.confirmPassword\"\n                 match=\"vm.user.newPassword\"\n                 ng-minlength=\"3\"\n                 required=\"\"/>\n          <p class=\"help-block\"\n             ng-show=\"form.confirmPassword.$error.match && vm.submitted\">\n            Passwords must match.\n          </p>\n\n        </div>\n\n        <p class=\"help-block\"> {{ vm.message }} </p>\n\n        <button class=\"btn btn-lg btn-primary\" type=\"submit\">Save changes</button>\n      </form>\n    </div>\n  </div>\n</div>\n");
 $templateCache.put("app/account/signup/signup.html","<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-sm-12\">\n      <h1>Sign up</h1>\n    </div>\n    <div class=\"col-sm-12\">\n      <form class=\"form\" name=\"form\" ng-submit=\"vm.register(form)\" novalidate>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.name.$valid && vm.submitted,\n                                            \'has-error\': form.name.$invalid && vm.submitted }\">\n          <label>Name</label>\n\n          <input type=\"text\" name=\"name\" class=\"form-control\" ng-model=\"vm.user.name\"\n                 required/>\n          <p class=\"help-block\" ng-show=\"form.name.$error.required && vm.submitted\">\n            A name is required\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.email.$valid && vm.submitted,\n                                            \'has-error\': form.email.$invalid && vm.submitted }\">\n          <label>Email</label>\n\n          <input type=\"email\" name=\"email\" class=\"form-control\" ng-model=\"vm.user.email\"\n                 required\n                 mongoose-error/>\n          <p class=\"help-block\" ng-show=\"form.email.$error.email && vm.submitted\">\n            Doesn\'t look like a valid email.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.required && vm.submitted\">\n            What\'s your email address?\n          </p>\n          <p class=\"help-block\" ng-show=\"form.email.$error.mongoose\">\n            {{ vm.errors.email }}\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.password.$valid && vm.submitted,\n                                            \'has-error\': form.password.$invalid && vm.submitted }\">\n          <label>Password</label>\n\n          <input type=\"password\" name=\"password\" class=\"form-control\" ng-model=\"vm.user.password\"\n                 ng-minlength=\"3\"\n                 required\n                 mongoose-error/>\n          <p class=\"help-block\"\n             ng-show=\"(form.password.$error.minlength || form.password.$error.required) && vm.submitted\">\n            Password must be at least 3 characters.\n          </p>\n          <p class=\"help-block\" ng-show=\"form.password.$error.mongoose\">\n            {{ vm.errors.password }}\n          </p>\n        </div>\n\n        <div class=\"form-group\" ng-class=\"{ \'has-success\': form.confirmPassword.$valid && vm.submitted,\n                                            \'has-error\': form.confirmPassword.$invalid && vm.submitted }\">\n          <label>Confirm Password</label>\n          <input type=\"password\" name=\"confirmPassword\" class=\"form-control\" ng-model=\"vm.user.confirmPassword\"\n                 match=\"vm.user.password\"\n                 ng-minlength=\"3\" required/>\n          <p class=\"help-block\"\n             ng-show=\"form.confirmPassword.$error.match && vm.submitted\">\n            Passwords must match.\n          </p>\n        </div>\n\n        <div>\n          <button class=\"btn btn-inverse btn-lg btn-register\" type=\"submit\">\n            Sign up\n          </button>\n          <a class=\"btn btn-default btn-lg btn-login\" ui-sref=\"login\">\n            Login\n          </a>\n        </div>\n\n        <hr/>\n        <div class=\"row\">\n          <div class=\"col-sm-4 col-md-3\">\n            <oauth-buttons classes=\"btn-block\"></oauth-buttons>\n          </div>\n        </div>\n      </form>\n    </div>\n  </div>\n  <hr>\n</div>\n");
+$templateCache.put("app/components/login/login.html","<div layout=\"column\" ng-cloak class=\"md-inline-form\" flex-offset-gt-md=\"25\" flex-gt-md=\"50\" flex=\"100\" layout-align=\"center none\">\n\n  <md-content md-theme=\"dark-grey\" layout-gt-sm=\"row\" layout-padding>\n        <h1>Login</h1>\n  </md-content>\n\n  <md-content layout-padding>\n      <form ng-submit=\"$ctrl.login(form)\"  name=\"form\" novalidate>\n        <md-input-container class=\"md-block\">\n            <label>Email</label>\n            <input ng-model=\"$ctrl.user.email\" type=\"email\" required>\n        </md-input-container>\n        <md-input-container class=\"md-block\">\n            <label>Password</label>\n            <input ng-model=\"$ctrl.user.password\" type=\"password\" required>\n        </md-input-container>\n        <md-button type=\"submit\">Enter</md-button>\n      </form>\n  </md-content>\n\n</div>");
+$templateCache.put("app/components/mainNavBar/mainNavBar.html","<style>\n    #container_fm{\n        position:relative;\n    }\n    #fabmenu {\n        position: absolute;\n        top:25px\n        \n    }\n</style>\n\n<md-toolbar id=\"container_fm\" layout=\"row\" flex ng-cloack>\n\n    <md-button id=\"fabmenu\" class=\"md-fab\" ng-click=\"$ctrl.toggleLeft()\">\n        <md-icon><i class=\"material-icons\">menu</i></md-icon>\n    </md-button>\n    <span flex></span>\n\n    <md-menu md-position-mode=\"target-right target\">\n        <md-button aria-label=\"Open demo menu\" class=\"md-icon-button\" ng-click=\"$mdOpenMenu($event)\">\n            <i class=\"material-icons\" >more_vert</i>\n        </md-button>\n        <md-menu-content width=\"4\" >\n            <md-menu-item ng-repeat=\"item in $ctrl.menuList\" >\n                <md-button ng-click=\"$ctrl.menuListClick($index)\">\n                    <div layout=\"row\" flex>\n                        <p flex>{{item.label}}</p>\n                    </div>\n                </md-button>\n            </md-menu-item>\n        </md-menu-content>\n    </md-menu>\n</md-toolbar>\n\n<md-sidenav \n    class=\"md-sidenav-left\" \n    md-component-id=\"left\" \n    md-disable-backdrop \n    md-whiteframe=\"4\" \n    >\n  <md-toolbar>\n    <h1 class=\"md-toolbar-tools\">{{$ctrl.sidenav.title}}</h1>\n  </md-toolbar>\n\n  <md-content layout-margin class=\"\">\n    <md-card md-theme=\"dark-indigo\" md-theme-watch ng-repeat=\"card in $ctrl.cardList\">\n        <md-card-title>\n          <md-card-title-text>\n            <span class=\"md-headline\">{{card.title}}</span>\n            <span class=\"md-subhead\">{{card.subTitle}}</span>\n          </md-card-title-text>\n          <md-card-title-media>\n            <div class=\"md-media-sm card-media\">\n                <img src=\"{{card.imgSrc}}\" alt=\"\">\n            </div>\n          </md-card-title-media>\n        </md-card-title>\n        <md-card-actions layout=\"row\" layout-align=\"end center\">\n          <md-button class=\"md-raised\" ng-click=\"$ctr.cardListClick($index)\">{{card.btnLabel}}</md-button>\n        </md-card-actions>\n      </md-card>\n\n    <md-button ng-click=\"$ctrl.toggleLeft()\" class=\"md-raised\">\n      close\n    </md-button>\n  </md-content>\n</md-sidenav>");
 $templateCache.put("app/directives/formAic/formAic.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.name\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrDatatype\" class=\"form-group has-feedback\">\n        <label for=\"\">Tipo de dato del input : Valor que se ingresa a la base de datos</label>\n        <select class=\"form-control\" ng-model=\"record.getsetSelect(\'dataType\',\'string\')\" \n        ng-model-options=\"{ getterSetter: true }\" ng-options=\"item as item for item in dataTypes track by item\">\n        </select>\n    </div>\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttribute\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'attribute\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrInput\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el input: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'input\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"listOfObj\" class=\"form-group has-feedback\">\n        <table class=\"table\">\n            <tr>\n                <td>ID</td>\n                <td>DataType</td>\n                <td></td>\n            </tr>\n        </table>\n    </div>\n\n\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n            <option value=\"reference\">reference</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");
 $templateCache.put("app/directives/formAttr/formAttr.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"attribute\">attribute</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.name\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrDatatype\" class=\"form-group has-feedback\">\n        <label for=\"\">Tipo de dato del input : Valor que se ingresa a la base de datos</label>\n        <select class=\"form-control\" ng-model=\"record.getsetSelect(\'dataType\',\'string\')\" \n        ng-model-options=\"{ getterSetter: true }\" ng-options=\"item as item for item in dataTypes track by item\">\n        </select>\n    </div>\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrSchema\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'schema\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttribute\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el attributo: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'attribute\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrInput\" class=\"form-group has-feedback\">\n        <label for=\"\">Vínculo con el input: referencia</label>\n        <input type=\"text\" ng-model=\"record.getsetString(\'input\',\'reference\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"listOfObj\" class=\"form-group has-feedback\">\n        <table class=\"table\">\n            <tr>\n                <td>ID</td>\n                <td>DataType</td>\n                <td></td>\n            </tr>\n        </table>\n    </div>\n\n\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n            <option value=\"reference\">reference</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");
 $templateCache.put("app/directives/formBuilder/formBuilder.html","<h3>Lista de attributos compatibles</h3>\n<ul>\n    <li ng-repeat=\"a in find(record.attributes,\'id\',\'keys\',\'listOfObj\')\">id:{{a.id}} - dataType: {{a.string}}</li>\n</ul>\n\n<form novalidate name=\"myForm\" class=\"container-fluid\">\n  <div id=\"_id\" class=\"form-group has-feedback\">\n    <label for=\"\">_id</label>\n    <input type=\"text\" ng-model=\"record._id\"  class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"type\" class=\"form-group has-feedback\">\n    <label for=\"\">Tipo de schema</label>\n    <select ng-model=\"record.type\" class=\"form-control\">\n        <option value=\"schema\">schema</option>\n        <option value=\"input\">input</option>\n        <option value=\"attrInputConf\">attrInputConf</option>\n        <option value=\"schmAttrInputConf\">schmAttrInputConf</option>\n    </select>\n  </div>\n\n  <div id=\"iname\" class=\"form-group has-feedback\">\n    <label for=\"\">name</label>\n    <input type=\"text\" ng-model=\"record.getsetFLString(\'name\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" disabled>\n  </div>\n\n  <div id=\"description\" class=\"form-group has-feedback\">\n    <label for=\"\">Descripción</label>\n    <input type=\"text\" ng-model=\"record.getsetString(\'description\',\'string\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n\n  <div id=\"attributes\" class=\"well\">\n    <h3>Attributes</h3>\n    <div id=\"blockAttr\" class=\"form-group has-feedback\">\n        <label for=\"\">id: {{attr.id}}</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n\n\n\n    <div id=\"attrName\" class=\"form-group has-feedback\">\n        <label for=\"\">Nombre</label>\n        <input type=\"text\" ng-model=\"record.getsetFlatNameReplica()\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n    <div id=\"attrAttributes\" class=\"form-group has-feedback\">\n        <label for=\"\">Attributos incorporados al Schema</label>\n        <input type=\"text\" ng-model=\"record.getsetOptionList(\'attributes\',\'list\')\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n    </div>\n\n    <div id=\"addAttrForm\" class=\"well\">\n        \n    </div>\n    <div id=\"addAttrSelector\" class=\"form-group has-feedback\">\n        <label for=\"\">id</label>\n        <input type=\"text\" class=\"form-control\">\n        <label for=\"\">dataType</label>\n        <select class=\"form-control\">\n            <option value=\"string\">string</option>\n            <option value=\"number\">number</option>\n            <option value=\"boolean\">boolean</option>\n            <option value=\"date\">date</option>\n            <option value=\"list\">list</option>\n            <option value=\"listOfObj\">listOfObj</option>\n            <option value=\"reference\">reference</option>\n        </select>\n        <br>\n        <button id=\"btnAddAttr\" type=\"button\" class=\"form-control btn btn-success\">Add attribute</button>\n    </div>\n  </div>\n  <button > {{aa}}</button>\n</form>\n\n\n<!-- themes segun datatypes -->\n<!--- number --->\n<div id=\"numberTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"number\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- string --->\n<div id=\"stringTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"text\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\n<!--- date --->\n<div id=\"dateTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"date\" ng-model-options=\"{ getterSetter: true, updateOn: \'blur\' }\" class=\"form-control\" >\n</div>\n<!--- list --->\n<!--- listOfObj --->\n<!--- boolean --->\n<div id=\"booleanTheme\" class=\"form-group has-feedback\">\n    <label for=\"\"></label>\n    <input type=\"checkbox\" ng-model-options=\"{ getterSetter: true }\" class=\"form-control\" >\n</div>\nuib-datepicker-popup=\"dd-MMMM-yyyy\"\n{{record}}\n\n<div id=\"saveBlock\" class=\"well\">\n    <button type=\"button\" class=\"btn btn-lg btn-success\">SAVE</button>\n</div>");

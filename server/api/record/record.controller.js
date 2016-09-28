@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.index = index;
+exports.aggregate = aggregate;
 exports.show = show;
 exports.create = create;
 exports.update = update;
@@ -25,6 +26,10 @@ var _lodash2 = _interopRequireDefault(_lodash);
 var _record = require('./record.model');
 
 var _record2 = _interopRequireDefault(_record);
+
+var _mongoose = require('mongoose');
+
+var _mongoose2 = _interopRequireDefault(_mongoose);
 
 var _q = require('q');
 
@@ -236,7 +241,15 @@ function index(req, res) {
     //filtrar la referencia del 
   }
 }
+function aggregate(req, res) {
+  var query;
+  var AggregateParser = require("./services/aggregation.oidParser").AggParser;
 
+  var aP = new AggregateParser(req.query.query);
+  query = aP.parse();
+
+  return _record2.default.aggregate(query).exec().then(respondWithResult(res, 200)).catch(handleError(res));
+}
 // Gets a single Record from the DB
 function show(req, res) {
   //si schm, key y datatype estan presentes, el id será tomado como el valor del atributo y no como _id
