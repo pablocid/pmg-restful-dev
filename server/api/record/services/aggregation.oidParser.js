@@ -8,6 +8,10 @@ var _typeof2 = require("babel-runtime/helpers/typeof");
 
 var _typeof3 = _interopRequireDefault(_typeof2);
 
+var _stringify = require("babel-runtime/core-js/json/stringify");
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
 exports.AggParser = AggParser;
 
 var _mongoose = require("mongoose");
@@ -20,6 +24,7 @@ function AggParser(query) {
 	try {
 		this.query = JSON.parse(query);
 	} catch (e) {
+		console.log("Error en el parseo");
 		throw new Error("Error en el Parseo de la query");
 	}
 }
@@ -30,6 +35,7 @@ AggParser.prototype.parse = function () {
 			this.query[i][key] = this.ssqParser(this.query[i][key]);
 		}
 	};
+	console.log((0, _stringify2.default)(this.query));
 	return this.query;
 };
 
@@ -45,7 +51,7 @@ AggParser.prototype.ssqParser = function (q) {
 		if ((0, _typeof3.default)(q[i]) === "object" && !Array.isArray(q[i])) {
 			if (q[i].hasOwnProperty("$oid")) {
 				q[i] = this.applyChange(q[i]);
-				return q;
+				//return q;
 			}
 			for (var w in q[i]) {
 				q[i][w] = this.ssqParser(q[i][w]);
