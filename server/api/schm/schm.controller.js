@@ -12,6 +12,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _stringify = require('babel-runtime/core-js/json/stringify');
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
 exports.index = index;
 exports.fullSchm = fullSchm;
 exports.show = show;
@@ -137,15 +142,19 @@ function checkParam(param, dataType) {
 
 // Gets a list of Schms
 function index(req, res) {
+  console.log(req.query.items);
+  var items = 30;
+  if (checkParam(req.query.items, 'number')) {
+    items = parseInt(req.query.items);
+  }
 
-  var items = req.query.items || 30;
   var page = req.query.page || 1;
   // checking the query data types
   if (!checkParam(page, 'number') || page === "0") {
     return respondWithResult(res, 500)({ Error: 'El parámetro page no es válido' });
   }
   if (!checkParam(items, 'number')) {
-    return respondWithResult(res, 500)({ Error: 'El parámetro items no es válido' });
+    //return respondWithResult(res, 500)({Error:'El parámetro items no es válido'});
   }
 
   var query = {};
@@ -168,6 +177,7 @@ function index(req, res) {
     }
     //console.log(filter);
   }
+  console.log((0, _stringify2.default)(query));
 
   _q2.default.all([_schm2.default.find(query).count().exec(), _schm2.default.find(query).skip(items * (page - 1)).limit(items)]).spread(function (count, data) {
     respondWithResult(res)({
