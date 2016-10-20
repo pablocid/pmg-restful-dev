@@ -145,7 +145,10 @@ function checkParam(param, dataType) {
 // Gets a list of Records
 function index(req, res) {
 
-  var items = req.query.items || 30;
+  var items = 30;
+  if (checkParam(req.query.items, 'number')) {
+    items = parseInt(req.query.items);
+  }
   var page = req.query.page || 1;
   // checking the query data types
   if (!checkParam(page, 'number') || page === "0") {
