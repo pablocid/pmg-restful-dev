@@ -1,12 +1,3 @@
-/**
- * Using Rails-like standard naming convention for endpoints.
- * GET     /api/uploads              ->  index
- * POST    /api/uploads              ->  create
- * GET     /api/uploads/:id          ->  show
- * PUT     /api/uploads/:id          ->  update
- * DELETE  /api/uploads/:id          ->  destroy
- */
-
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -56,7 +47,16 @@ function respondWithResult(res, statusCode) {
       res.status(statusCode).json(entity);
     }
   };
-}
+} /**
+   * Using Rails-like standard naming convention for endpoints.
+   * GET     /api/uploads              ->  index
+   * POST    /api/uploads              ->  create
+   * GET     /api/uploads/:id          ->  show
+   * PUT     /api/uploads/:id          ->  update
+   * DELETE  /api/uploads/:id          ->  destroy
+   */
+
+//'use strict';
 
 function saveUpdates(updates) {
   return function (entity) {
@@ -116,12 +116,42 @@ function show(req, res) {
   };
 
   S3.getObject(opt, function (err, data) {
-    res.end(data.Body);
+    if (data) {
+      res.end(data.Body);
+    } else {
+      handleEntityNotFound(res);
+    }
   });
 }
 
 // Creates a new Upload in the DB
 function create(req, res) {
+  console.log('saving image ...');
+
+  //console.log(req.body.file)
+  if (req.body.base64 && req.body.name) {
+
+    var buf = new Buffer(req.body.file.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+    var data = {
+      Key: req.body.name,
+      Bucket: 'pmgv-files',
+      Body: buf,
+      ContentEncoding: 'base64',
+      ContentType: 'image/jpeg'
+    };
+    S3.putObject(data, function (err, data) {
+      if (err) {
+        console.log(err);
+        console.log('Error uploading data: ', data);
+      } else {
+        console.log('succesfully uploaded the image!');
+      }
+      return respondWithResult(res)({ ok: true });
+    });
+  }
+
+  //req.pipe(fs.createWriteStream("out_file.bin", { flags: 'w', encoding: null, fd: null}))
+  //console.log(req)
 
   // create an incoming form object
   var form = new _formidable2.default.IncomingForm();
@@ -135,6 +165,9 @@ function create(req, res) {
   // every time a file has been uploaded successfully,
   // rename it to it's orignal name
   form.on('file', function (field, file) {
+    if (!file.name) {
+      file.name = req.headers["file-name"];
+    }
     var s3req = {
       Body: _fs2.default.readFileSync(file.path),
       Bucket: 'pmgv-files',
@@ -142,9 +175,8 @@ function create(req, res) {
     };
 
     S3.putObject(s3req, function (err, data) {
-      //if(err) return respondWithResult(res)(err);
-
-      //return respondWithResult(res)({ok:true});
+      if (err) return respondWithResult(res)(err);
+      return respondWithResult(res)(data);
     });
   });
 
@@ -155,11 +187,15 @@ function create(req, res) {
 
   // once all the files have been uploaded, send a response to the client
   form.on('end', function () {
-    res.end('success');
+    //res.end('success');
   });
 
   // parse the incoming request containing the form data
   form.parse(req);
+  /*function(err, fields, files) {
+      res.writeHead(200, {'content-type': 'text/plain'});
+    }
+    */
 }
 
 // Updates an existing Upload in the DB
