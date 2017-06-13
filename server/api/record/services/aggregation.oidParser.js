@@ -49,9 +49,8 @@ AggParser.prototype.applyChange = function (oid) {
 AggParser.prototype.ssqParser = function (q) {
 	for (var i in q) {
 		if ((0, _typeof3.default)(q[i]) === "object" && !Array.isArray(q[i])) {
-			if (q[i].hasOwnProperty("$oid")) {
+			if (q[i] !== null && q[i].hasOwnProperty("$oid")) {
 				q[i] = this.applyChange(q[i]);
-				//return q;
 			}
 			for (var w in q[i]) {
 				q[i][w] = this.ssqParser(q[i][w]);

@@ -12,6 +12,7 @@ var controller = require('./record.controller');
 
 var router = express.Router();
 router.get('/', auth.hasRole('user'), controller.index);
+router.get('/stream', auth.hasRole('user'), controller.stream);
 router.get('/aggregate', auth.hasRole('user'), controller.aggregate);
 router.get('/:id', auth.hasRole('user'), controller.show);
 router.post('/', auth.hasRole('user'), controller.create);
