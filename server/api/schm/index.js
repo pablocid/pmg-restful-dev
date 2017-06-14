@@ -11,12 +11,14 @@ var controller = require('./schm.controller');
 
 var router = express.Router();
 
-router.get('/', auth.hasRole('admin'), controller.index);
-router.get('/:id', auth.hasRole('admin'), controller.show);
-router.post('/', auth.hasRole('admin'), controller.create);
-router.put('/:id', auth.hasRole('admin'), controller.update);
-router.patch('/:id', auth.hasRole('admin'), controller.update);
-router.delete('/:id', controller.destroy);
+router.get('/', auth.hasRole('user'), controller.index);
+router.get('/stream', auth.hasRole('user'), controller.stream);
+router.get('/aggregate', auth.hasRole('user'), controller.aggregate);
+router.get('/:id', auth.hasRole('user'), controller.show);
+router.post('/', auth.hasRole('user'), controller.create);
+router.put('/:id', auth.hasRole('user'), controller.update);
+//router.patch('/:id', auth.hasRole('user'), controller.update);
+router.delete('/:id', auth.hasRole('user'), controller.destroy);
 
 module.exports = router;
 //# sourceMappingURL=index.js.map
