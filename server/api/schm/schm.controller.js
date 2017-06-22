@@ -118,12 +118,7 @@ function aggregate(req, res) {
     var aP = new AggregateParser(req.query.query);
     query = aP.parse();
 
-    var stream = _schm2.default.aggregate(query).cursor();
-    stream.on('error', function (err) {
-        res.send(err);
-    });
-
-    stream.pipe(new ArrayFormatter()).pipe(res);
+    return _schm2.default.aggregate(query).exec().then(respondWithResult(res, 200)).catch(handleError(res));
 }
 
 function saveUpdates(updates) {

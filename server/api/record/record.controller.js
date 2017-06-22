@@ -314,12 +314,7 @@ function aggregate(req, res) {
     var aP = new AggregateParser(req.query.query);
     query = aP.parse();
 
-    var stream = _record2.default.aggregate(query).cursor();
-    stream.on('error', function (err) {
-        res.send(err);
-    });
-
-    stream.pipe(new ArrayFormatter()).pipe(res);
+    return _record2.default.aggregate(query).exec().then(respondWithResult(res, 200)).catch(handleError(res));
 }
 // Gets a single Record from the DB
 function show(req, res) {
