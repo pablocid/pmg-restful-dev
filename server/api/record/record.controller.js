@@ -47,8 +47,6 @@ var Schm = require('../schm/schm.controller');
 
 var Stream = require('stream').Stream;
 
-var EJSON = require('mongodb-extended-json');
-
 function respondWithResult(res, statusCode) {
     statusCode = statusCode || 200;
     return function (entity) {
@@ -310,14 +308,13 @@ function index(req, res) {
     }
 }
 function aggregate(req, res) {
-    // var query;
-    // var AggregateParser = require("./services/aggregation.oidParser").AggParser;
+    var query;
+    var AggregateParser = require("./services/aggregation.oidParser").AggParser;
 
-    // var aP = new AggregateParser(req.query.query);
-    // query = aP.parse();
+    var aP = new AggregateParser(req.query.query);
+    query = aP.parse();
 
-
-    return _record2.default.aggregate(EJSON.deflate(req.query.query)).exec().then(respondWithResult(res, 200)).catch(handleError(res));
+    return _record2.default.aggregate(query).exec().then(respondWithResult(res, 200)).catch(handleError(res));
 }
 // Gets a single Record from the DB
 function show(req, res) {
