@@ -42,6 +42,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Stream = require('stream').Stream;
 
+var EJSON = require('mongodb-extended-json');
+
 function respondWithResult(res, statusCode) {
     statusCode = statusCode || 200;
     return function (entity) {
@@ -113,12 +115,13 @@ function stream(req, res) {
 var AggregateParser = require("../record/services/aggregation.oidParser").AggParser;
 
 function aggregate(req, res) {
-    var query;
+    // var query;
 
-    var aP = new AggregateParser(req.query.query);
-    query = aP.parse();
 
-    return _schm2.default.aggregate(query).exec().then(respondWithResult(res, 200)).catch(handleError(res));
+    // var aP = new AggregateParser(req.query.query);
+    // query = aP.parse();
+
+    return _schm2.default.aggregate(EJSON.parse(req.query.query)).exec().then(respondWithResult(res, 200)).catch(handleError(res));
 }
 
 function saveUpdates(updates) {
